@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { ordersAPI } from '../services/api.js'
 import { money } from '../data.js'
+import { CheckCircle2 } from 'lucide-react'
 
 export function OrderSuccess() {
   const { orderNumber } = useParams()
@@ -30,7 +31,9 @@ export function OrderSuccess() {
   return (
     <div className="order-success-page">
       <div className="order-success-card">
-        <div className="success-icon-badge">✓</div>
+        <div className="success-icon-badge">
+          <CheckCircle2 size={36} strokeWidth={2} />
+        </div>
         <h1 className="success-title">Thank You For Your Order!</h1>
         <p className="success-subtitle">
           Your order has been received and is being processed by our team.

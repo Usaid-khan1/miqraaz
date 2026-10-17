@@ -1,4 +1,17 @@
 import { useState, useEffect } from 'react'
+import {
+  Plus,
+  Search,
+  UploadCloud,
+  X,
+  Edit3,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  ShoppingBag,
+  ExternalLink,
+} from 'lucide-react'
 import { productsAPI, categoriesAPI, uploadAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 import { money } from '../data.js'
@@ -16,7 +29,7 @@ export function AdminProducts() {
   const [editingProduct, setEditingProduct] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const { showToast } = useToast()
+  const { showToast, confirmModal } = useToast()
 
   const initialForm = {
     name: '',
@@ -97,7 +110,6 @@ export function AdminProducts() {
     setUploadingImage(true)
     try {
       const res = await uploadAPI.uploadImage(file)
-      // Append uploaded image URL to imagesText
       setForm((prev) => ({
         ...prev,
         imagesText: prev.imagesText ? `${prev.imagesText}\n${res.url}` : res.url,
@@ -153,10 +165,17 @@ export function AdminProducts() {
   }
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete product "${name}"?`)) return
+    const ok = await confirmModal({
+      title: 'Delete Article',
+      message: `Are you sure you want to permanently delete "${name}" from the catalog? This action cannot be undone.`,
+      confirmText: 'Delete Article',
+      isDanger: true,
+    })
+    if (!ok) return
+
     try {
       await productsAPI.delete(id)
-      showToast('Product deleted', 'success')
+      showToast(`Article "${name}" deleted successfully`, 'success')
       loadProducts()
     } catch (err) {
       showToast(err.message || 'Failed to delete product', 'error')
@@ -167,20 +186,22 @@ export function AdminProducts() {
     <div className="admin-page">
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Products Management</h1>
-          <p className="muted font-sm">Create, update, and manage catalog items</p>
+          <h1 className="admin-page-title">Products Catalog</h1>
+          <p className="admin-page-subtitle">Create, update, and manage editorial articles and size inventories</p>
         </div>
-        <button type="button" className="btn sm" onClick={handleOpenAdd}>
-          + Add New Product
+        <button type="button" className="admin-btn-primary" onClick={handleOpenAdd}>
+          <Plus size={16} strokeWidth={2} />
+          <span>New Product</span>
         </button>
       </div>
 
-      {/* Search & Filter Toolbar */}
+      {/* Toolbar */}
       <div className="admin-toolbar-row">
-        <div className="admin-search-input-wrap">
+        <div className="admin-search-box">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
-            placeholder="Search by product name, SKU..."
+            placeholder="Search by article title, SKU..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -188,21 +209,24 @@ export function AdminProducts() {
             }}
           />
         </div>
-        <span className="font-sm muted">Total: {pagination.total} products</span>
+        <span className="admin-counter-text">{pagination.total} articles total</span>
       </div>
 
-      {/* Products Table */}
+      {/* Table Card */}
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-spinner">Loading catalog...</div>
+          <div className="admin-loading-spinner-wrap">
+            <div className="admin-spinner-ring" />
+            <span>Loading product inventory...</span>
+          </div>
         ) : products.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Product</th>
+                  <th>Article</th>
                   <th>SKU</th>
-                  <th>Category</th>
+                  <th>Collection</th>
                   <th>Price</th>
                   <th>Stock</th>
                   <th>Status</th>
@@ -218,22 +242,24 @@ export function AdminProducts() {
                         {p.images && p.images[0] ? (
                           <img src={p.images[0]} alt={p.name} className="admin-thumb" />
                         ) : (
-                          <div className="ph small admin-thumb">KESHK</div>
+                          <div className="admin-thumb-empty">
+                            <ShoppingBag size={18} strokeWidth={1.5} />
+                          </div>
                         )}
                         <div>
-                          <strong>{p.name}</strong>
+                          <strong className="admin-prod-title">{p.name}</strong>
                           <div className="muted font-xs">{p.slug}</div>
                         </div>
                       </div>
                     </td>
-                    <td><span className="font-xs font-mono">{p.sku}</span></td>
-                    <td>{p.category?.name || p.collectionSlug || '—'}</td>
+                    <td><span className="font-xs font-mono">{p.sku || '—'}</span></td>
+                    <td><span className="font-sm">{p.category?.name || p.collectionSlug || '—'}</span></td>
                     <td>
                       {p.salePrice ? (
-                        <>
-                          <strong>{money(p.salePrice)}</strong>{' '}
+                        <div className="admin-price-cell">
+                          <strong className="text-accent">{money(p.salePrice)}</strong>
                           <span className="line-through muted font-xs">{money(p.price)}</span>
-                        </>
+                        </div>
                       ) : (
                         <strong>{money(p.price)}</strong>
                       )}
@@ -248,22 +274,35 @@ export function AdminProducts() {
                         {p.isPublished ? 'Published' : 'Hidden'}
                       </span>
                     </td>
-                    <td>{p.isFeatured ? '⭐ Yes' : 'No'}</td>
+                    <td>
+                      {p.isFeatured ? (
+                        <span className="featured-chip">
+                          <Sparkles size={12} strokeWidth={2} />
+                          <span>Featured</span>
+                        </span>
+                      ) : (
+                        <span className="muted font-xs">—</span>
+                      )}
+                    </td>
                     <td className="text-right">
-                      <button
-                        type="button"
-                        className="link font-sm mr-2"
-                        onClick={() => handleOpenEdit(p)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="link text-danger font-sm"
-                        onClick={() => handleDelete(p._id, p.name)}
-                      >
-                        Delete
-                      </button>
+                      <div className="admin-action-btn-group">
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn"
+                          title="Edit Product"
+                          onClick={() => handleOpenEdit(p)}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn text-danger"
+                          title="Delete Product"
+                          onClick={() => handleDelete(p._id, p.name)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -271,8 +310,9 @@ export function AdminProducts() {
             </table>
           </div>
         ) : (
-          <div className="admin-empty-pane">
-            <p className="muted">No products found matching your search.</p>
+          <div className="admin-empty-state-box">
+            <ShoppingBag size={32} strokeWidth={1.5} className="muted" />
+            <p>No products found matching your search.</p>
           </div>
         )}
       </div>
@@ -286,7 +326,8 @@ export function AdminProducts() {
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            ← Previous
+            <ChevronLeft size={15} />
+            <span>Previous</span>
           </button>
           <span className="page-indicator">
             Page {page} of {pagination.totalPages}
@@ -297,52 +338,63 @@ export function AdminProducts() {
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
           >
-            Next →
+            <span>Next</span>
+            <ChevronRight size={15} />
           </button>
         </div>
       )}
 
       {/* ADD / EDIT PRODUCT MODAL */}
       {modalOpen && (
-        <div className="search-overlay" onClick={() => setModalOpen(false)}>
-          <div className="modal-dialog-card xl" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editingProduct ? `Edit Product: ${editingProduct.name}` : 'Create New Product'}</h3>
-              <button type="button" className="icon-btn" onClick={() => setModalOpen(false)}>
-                ✕
+        <div className="admin-modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="admin-modal-card admin-modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 className="admin-modal-title">
+                  {editingProduct ? `Edit Article: ${editingProduct.name}` : 'Create New Article'}
+                </h3>
+                <p className="admin-modal-subtitle">Configure pricing, category taxonomy, and size stock levels</p>
+              </div>
+              <button
+                type="button"
+                className="admin-modal-close-btn"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close dialog"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="modal-body-scroll">
+            <form onSubmit={handleSubmit} className="admin-modal-body">
               <div className="form-row-2">
                 <div className="field-group">
-                  <label>Product Name *</label>
+                  <label>Article Name *</label>
                   <input
                     type="text"
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="e.g. Sabz Daftar Hoodie"
+                    placeholder="e.g. Sabz Daftar (سبز دفتر)"
                   />
                 </div>
                 <div className="field-group">
-                  <label>Slug (URL Identifier)</label>
+                  <label>Slug Identifier</label>
                   <input
                     type="text"
                     value={form.slug}
                     onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                    placeholder="auto-generated if empty"
+                    placeholder="Auto-generated if empty"
                   />
                 </div>
               </div>
 
               <div className="field-group">
-                <label>Description</label>
+                <label>Description &amp; Fabric Narrative</label>
                 <textarea
                   rows={3}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Unisex fashion with traditional and street fusion..."
+                  placeholder="Artisanal silhouettes with street fusion inspired by Lyari..."
                 />
               </div>
 
@@ -365,16 +417,16 @@ export function AdminProducts() {
                     min={0}
                     value={form.salePrice}
                     onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                    placeholder="5800"
+                    placeholder="Leave empty if regular"
                   />
                 </div>
                 <div className="field-group">
-                  <label>SKU</label>
+                  <label>SKU / Barcode</label>
                   <input
                     type="text"
                     value={form.sku}
                     onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                    placeholder="e.g. MK-102938"
+                    placeholder="e.g. MK-882190"
                   />
                 </div>
               </div>
@@ -386,7 +438,7 @@ export function AdminProducts() {
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                   >
-                    <option value="">None / Default</option>
+                    <option value="">None / Standalone</option>
                     {categories.map((c) => (
                       <option key={c._id} value={c._id}>
                         {c.name}
@@ -408,9 +460,10 @@ export function AdminProducts() {
               {/* Image Upload and URLs */}
               <div className="field-group">
                 <div className="label-with-link">
-                  <label>Product Images (One URL per line)</label>
-                  <label className="image-upload-label-btn">
-                    {uploadingImage ? 'Uploading...' : '📁 Upload Image File'}
+                  <label>Image Assets (One URL per line)</label>
+                  <label className="admin-inline-upload-btn">
+                    <UploadCloud size={14} />
+                    <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -424,13 +477,13 @@ export function AdminProducts() {
                   rows={3}
                   value={form.imagesText}
                   onChange={(e) => setForm({ ...form, imagesText: e.target.value })}
-                  placeholder="https://example.com/image.jpg&#10;/uploads/img-123.jpg"
+                  placeholder="https://keshkofficial.com/...&#10;/uploads/file-123.jpg"
                 />
               </div>
 
               {/* Sizes Stock */}
               <div className="field-group">
-                <label>Sizes &amp; Inventory Quantities</label>
+                <label>Sizes &amp; Variant Inventory</label>
                 <div className="size-inputs-grid">
                   {form.sizes.map((s, idx) => (
                     <div key={s.size} className="size-stock-input-item">
@@ -452,7 +505,7 @@ export function AdminProducts() {
 
               <div className="form-row-3">
                 <div className="field-group">
-                  <label>Low Stock Alert Threshold</label>
+                  <label>Low Stock Threshold</label>
                   <input
                     type="number"
                     min={1}
@@ -461,37 +514,37 @@ export function AdminProducts() {
                   />
                 </div>
                 <div className="field-group checkbox-align">
-                  <label className="filter-checkbox-label">
+                  <label className="admin-custom-checkbox">
                     <input
                       type="checkbox"
                       checked={form.isFeatured}
                       onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
                     />
-                    <span>Featured Product</span>
+                    <span>Featured in Highlights</span>
                   </label>
                 </div>
                 <div className="field-group checkbox-align">
-                  <label className="filter-checkbox-label">
+                  <label className="admin-custom-checkbox">
                     <input
                       type="checkbox"
                       checked={form.isPublished}
                       onChange={(e) => setForm({ ...form, isPublished: e.target.checked })}
                     />
-                    <span>Published (Visible to public)</span>
+                    <span>Published (Storefront Visible)</span>
                   </label>
                 </div>
               </div>
 
-              <div className="modal-actions-row">
+              <div className="admin-modal-footer">
                 <button
                   type="button"
-                  className="btn sm light"
+                  className="admin-btn-secondary"
                   onClick={() => setModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn sm" disabled={submitting}>
-                  {submitting ? 'Saving...' : editingProduct ? 'Save Changes' : 'Create Product'}
+                <button type="submit" className="admin-btn-primary" disabled={submitting}>
+                  {submitting ? 'Saving...' : editingProduct ? 'Save Changes' : 'Create Article'}
                 </button>
               </div>
             </form>

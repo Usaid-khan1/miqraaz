@@ -1,10 +1,23 @@
 import app from './app.js'
-import { connectDB } from './config/database.js'
+import { connectDB, closeDB } from './config/database.js'
 import { ENV } from './config/env.js'
+import { Category } from './models/Category.js'
+import { seedDatabase } from './scripts/seed.js'
 
 const startServer = async () => {
   try {
     await connectDB()
+
+    // Auto-seed if database is freshly initialized or empty
+    try {
+      const catCount = await Category.countDocuments()
+      if (catCount === 0) {
+        console.log('[Database] Database is empty. Running initial seed automatically...')
+        await seedDatabase({ exitOnComplete: false })
+      }
+    } catch (seedErr) {
+      console.warn(`[Database] Auto-seed check notice: ${seedErr.message}`)
+    }
 
     const server = app.listen(ENV.PORT, () => {
       console.log(`===============================================`)
@@ -17,7 +30,8 @@ const startServer = async () => {
 
     const gracefulShutdown = (signal) => {
       console.log(`\nReceived ${signal}. Closing server gracefully...`)
-      server.close(() => {
+      server.close(async () => {
+        await closeDB()
         console.log('HTTP server closed.')
         process.exit(0)
       })

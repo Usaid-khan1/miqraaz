@@ -1,4 +1,12 @@
 import { useState, useEffect } from 'react'
+import {
+  Plus,
+  UploadCloud,
+  X,
+  Edit3,
+  Trash2,
+  FolderTree,
+} from 'lucide-react'
 import { categoriesAPI, uploadAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 
@@ -10,7 +18,7 @@ export function AdminCategories() {
   const [editingCategory, setEditingCategory] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const { showToast } = useToast()
+  const { showToast, confirmModal } = useToast()
 
   const initialForm = {
     name: '',
@@ -63,7 +71,7 @@ export function AdminCategories() {
     try {
       const res = await uploadAPI.uploadImage(file)
       setForm((prev) => ({ ...prev, image: res.url }))
-      showToast('Category image uploaded', 'success')
+      showToast('Category banner uploaded successfully', 'success')
     } catch (err) {
       showToast(err.message || 'Upload failed', 'error')
     } finally {
@@ -92,10 +100,17 @@ export function AdminCategories() {
   }
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete category "${name}"?`)) return
+    const ok = await confirmModal({
+      title: 'Delete Chapter / Category',
+      message: `Are you sure you want to permanently delete category "${name}"? Products assigned to this category will need to be reassigned.`,
+      confirmText: 'Delete Chapter',
+      isDanger: true,
+    })
+    if (!ok) return
+
     try {
       await categoriesAPI.delete(id)
-      showToast('Category deleted', 'success')
+      showToast(`Category "${name}" deleted successfully`, 'success')
       loadCategories()
     } catch (err) {
       showToast(err.message || 'Cannot delete category', 'error')
@@ -106,23 +121,27 @@ export function AdminCategories() {
     <div className="admin-page">
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Category &amp; Chapters Management</h1>
-          <p className="muted font-sm">Organize store collections, chapters, and mega menu items</p>
+          <h1 className="admin-page-title">Chapters &amp; Categories</h1>
+          <p className="admin-page-subtitle">Organize seasonal chapters, collections, and navigation taxonomies</p>
         </div>
-        <button type="button" className="btn sm" onClick={handleOpenAdd}>
-          + Add New Category
+        <button type="button" className="admin-btn-primary" onClick={handleOpenAdd}>
+          <Plus size={16} strokeWidth={2} />
+          <span>New Chapter</span>
         </button>
       </div>
 
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-spinner">Loading categories...</div>
+          <div className="admin-loading-spinner-wrap">
+            <div className="admin-spinner-ring" />
+            <span>Loading chapters...</span>
+          </div>
         ) : categories.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Category</th>
+                  <th>Chapter / Collection</th>
                   <th>Slug</th>
                   <th>Order</th>
                   <th>Status</th>
@@ -137,36 +156,42 @@ export function AdminCategories() {
                         {c.image ? (
                           <img src={c.image} alt={c.name} className="admin-thumb" />
                         ) : (
-                          <div className="ph small admin-thumb">{c.name.slice(0, 3)}</div>
+                          <div className="admin-thumb-empty">
+                            <FolderTree size={18} strokeWidth={1.5} />
+                          </div>
                         )}
                         <div>
-                          <strong>{c.name}</strong>
+                          <strong className="admin-prod-title">{c.name}</strong>
                           {c.description && <div className="muted font-xs">{c.description}</div>}
                         </div>
                       </div>
                     </td>
                     <td><span className="font-xs font-mono">{c.slug}</span></td>
-                    <td>{c.order}</td>
+                    <td><span className="font-sm">{c.order}</span></td>
                     <td>
                       <span className={`status-pill ${c.isActive ? 'status-delivered' : 'status-cancelled'}`}>
-                        {c.isActive ? 'Active' : 'Inactive'}
+                        {c.isActive ? 'Active' : 'Hidden'}
                       </span>
                     </td>
                     <td className="text-right">
-                      <button
-                        type="button"
-                        className="link font-sm mr-2"
-                        onClick={() => handleOpenEdit(c)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="link text-danger font-sm"
-                        onClick={() => handleDelete(c._id, c.name)}
-                      >
-                        Delete
-                      </button>
+                      <div className="admin-action-btn-group">
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn"
+                          title="Edit Chapter"
+                          onClick={() => handleOpenEdit(c)}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn text-danger"
+                          title="Delete Chapter"
+                          onClick={() => handleDelete(c._id, c.name)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -174,32 +199,43 @@ export function AdminCategories() {
             </table>
           </div>
         ) : (
-          <div className="admin-empty-pane">
-            <p className="muted">No categories created yet.</p>
+          <div className="admin-empty-state-box">
+            <FolderTree size={32} strokeWidth={1.5} className="muted" />
+            <p>No chapters or categories created yet.</p>
           </div>
         )}
       </div>
 
       {/* ADD / EDIT MODAL */}
       {modalOpen && (
-        <div className="search-overlay" onClick={() => setModalOpen(false)}>
-          <div className="modal-dialog-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editingCategory ? `Edit: ${editingCategory.name}` : 'New Category'}</h3>
-              <button type="button" className="icon-btn" onClick={() => setModalOpen(false)}>
-                ✕
+        <div className="admin-modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="admin-modal-card admin-modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 className="admin-modal-title">
+                  {editingCategory ? `Edit: ${editingCategory.name}` : 'Create New Chapter'}
+                </h3>
+                <p className="admin-modal-subtitle">Define collection identity, banner art, and display priority</p>
+              </div>
+              <button
+                type="button"
+                className="admin-modal-close-btn"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close dialog"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="modal-body">
+            <form onSubmit={handleSubmit} className="admin-modal-body">
               <div className="field-group">
-                <label>Category / Chapter Name *</label>
+                <label>Chapter Title *</label>
                 <input
                   type="text"
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. RANG XII, RAABTA XI..."
+                  placeholder="e.g. RANG XII, RAABTA XI"
                 />
               </div>
 
@@ -214,20 +250,21 @@ export function AdminCategories() {
               </div>
 
               <div className="field-group">
-                <label>Description (Optional)</label>
+                <label>Collection Narrative (Optional)</label>
                 <textarea
                   rows={2}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Short collection description..."
+                  placeholder="Artisanal silhouettes and thematic notes..."
                 />
               </div>
 
               <div className="field-group">
                 <div className="label-with-link">
-                  <label>Banner Image URL</label>
-                  <label className="image-upload-label-btn">
-                    {uploadingImage ? 'Uploading...' : '📁 Upload File'}
+                  <label>Banner Artwork URL</label>
+                  <label className="admin-inline-upload-btn">
+                    <UploadCloud size={14} />
+                    <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -241,41 +278,41 @@ export function AdminCategories() {
                   type="text"
                   value={form.image}
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
-                  placeholder="https://... or /uploads/img-123.jpg"
+                  placeholder="https://... or /uploads/image.jpg"
                 />
               </div>
 
               <div className="form-row-2">
                 <div className="field-group">
-                  <label>Display Order</label>
+                  <label>Display Priority Order</label>
                   <input
                     type="number"
                     value={form.order}
-                    onChange={(e) => setForm({ ...form, order: e.target.value })}
+                    onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
                   />
                 </div>
                 <div className="field-group checkbox-align">
-                  <label className="filter-checkbox-label">
+                  <label className="admin-custom-checkbox">
                     <input
                       type="checkbox"
                       checked={form.isActive}
                       onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                     />
-                    <span>Active in Mega Menu &amp; Nav</span>
+                    <span>Active in Store Navigation</span>
                   </label>
                 </div>
               </div>
 
-              <div className="modal-actions-row">
+              <div className="admin-modal-footer">
                 <button
                   type="button"
-                  className="btn sm light"
+                  className="admin-btn-secondary"
                   onClick={() => setModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn sm" disabled={submitting}>
-                  {submitting ? 'Saving...' : editingCategory ? 'Save Changes' : 'Create Category'}
+                <button type="submit" className="admin-btn-primary" disabled={submitting}>
+                  {submitting ? 'Saving...' : editingCategory ? 'Save Changes' : 'Create Chapter'}
                 </button>
               </div>
             </form>

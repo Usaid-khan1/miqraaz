@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { productsAPI } from '../services/api.js'
 import { money } from '../data.js'
+import { X } from 'lucide-react'
 
 export function SearchModal({ open, onClose }) {
   const [query, setQuery] = useState('')
@@ -102,7 +103,7 @@ export function SearchModal({ open, onClose }) {
               onClick={() => setQuery('')}
               aria-label="Clear query"
             >
-              ✕
+              <X size={14} />
             </button>
           )}
           <button

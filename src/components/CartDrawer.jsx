@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { money } from '../data.js'
+import { X } from 'lucide-react'
 
 export function CartDrawer() {
   const { cartOpen, closeCart, items, update, remove, subtotal } = useCart()
@@ -27,7 +28,7 @@ export function CartDrawer() {
         <div className="drawer-head">
           <h3>Shopping Cart</h3>
           <button className="icon-btn" onClick={closeCart} aria-label="Close cart">
-            ✕
+            <X size={18} />
           </button>
         </div>
 

@@ -1,4 +1,13 @@
 import { useState, useEffect } from 'react'
+import {
+  Save,
+  Store,
+  Truck,
+  Phone,
+  Mail,
+  MapPin,
+  CheckCircle2,
+} from 'lucide-react'
 import { settingsAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 
@@ -38,7 +47,7 @@ export function AdminSettings() {
     try {
       const res = await settingsAPI.updateAdmin(settings)
       setSettings(res.settings)
-      showToast('Store settings saved successfully', 'success')
+      showToast('Storefront parameters saved successfully', 'success')
     } catch (err) {
       showToast(err.message || 'Failed to save settings', 'error')
     } finally {
@@ -47,24 +56,33 @@ export function AdminSettings() {
   }
 
   if (loading) {
-    return <div className="admin-loading-spinner">Loading store settings...</div>
+    return (
+      <div className="admin-loading-spinner-wrap">
+        <div className="admin-spinner-ring" />
+        <span>Loading store settings...</span>
+      </div>
+    )
   }
 
   return (
     <div className="admin-page">
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Store Settings</h1>
-          <p className="muted font-sm">Configure commerce parameters, shipping fees, contact details, and brand identity</p>
+          <h1 className="admin-page-title">Store Configuration</h1>
+          <p className="admin-page-subtitle">Configure commerce parameters, shipping fees, contact details, and brand identity</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="admin-settings-form">
+        {/* Brand & Identity */}
         <div className="admin-card">
           <div className="admin-card-header">
-            <h3>Brand &amp; Identity</h3>
+            <div>
+              <h3>Brand &amp; Identity</h3>
+              <p className="admin-card-subtitle">Public name, Urdu script mark, and announcement banner</p>
+            </div>
           </div>
-          <div className="modal-body">
+          <div className="admin-card-body">
             <div className="form-row-2">
               <div className="field-group">
                 <label>Store Brand Name</label>
@@ -81,35 +99,42 @@ export function AdminSettings() {
                   type="text"
                   value={settings.brandNameUrdu}
                   onChange={(e) => setSettings({ ...settings, brandNameUrdu: e.target.value })}
+                  placeholder="مِقْرَاض"
                 />
               </div>
             </div>
 
-            <div className="field-group">
+            <div className="field-group" style={{ marginTop: '14px' }}>
               <label>Brand Tagline</label>
               <input
                 type="text"
                 value={settings.tagline}
                 onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
+                placeholder="Unisex fashion with traditional and street fusion. EST. in Lyari"
               />
             </div>
 
-            <div className="field-group">
-              <label>Announcement Bar Ticker Text</label>
+            <div className="field-group" style={{ marginTop: '14px' }}>
+              <label>Top Announcement Bar Ticker</label>
               <input
                 type="text"
                 value={settings.announcementText}
                 onChange={(e) => setSettings({ ...settings, announcementText: e.target.value })}
+                placeholder="A LANGUAGE BEYOND FABRIC — SOME STORIES ARE WRITTEN IN INK, OTHERS ARE WORN."
               />
             </div>
           </div>
         </div>
 
+        {/* Shipping & Commerce Rules */}
         <div className="admin-card" style={{ marginTop: '24px' }}>
           <div className="admin-card-header">
-            <h3>Shipping &amp; Commerce Rules</h3>
+            <div>
+              <h3>Shipping &amp; Commercial Policy</h3>
+              <p className="admin-card-subtitle">Delivery tariffs, complimentary shipping eligibility, and tax rules</p>
+            </div>
           </div>
-          <div className="modal-body">
+          <div className="admin-card-body">
             <div className="form-row-3">
               <div className="field-group">
                 <label>Standard Shipping Fee (PKR)</label>
@@ -132,7 +157,7 @@ export function AdminSettings() {
                 />
               </div>
               <div className="field-group">
-                <label>Tax Rate (%)</label>
+                <label>Sales Tax Rate (%)</label>
                 <input
                   type="number"
                   min={0}
@@ -143,24 +168,28 @@ export function AdminSettings() {
               </div>
             </div>
 
-            <div className="terms-check-wrap">
-              <label className="filter-checkbox-label">
+            <div style={{ marginTop: '16px' }}>
+              <label className="admin-custom-checkbox">
                 <input
                   type="checkbox"
                   checked={settings.codEnabled}
                   onChange={(e) => setSettings({ ...settings, codEnabled: e.target.checked })}
                 />
-                <span>Enable Cash on Delivery (COD) payment method</span>
+                <span>Enable Cash on Delivery (COD) payment method nationwide</span>
               </label>
             </div>
           </div>
         </div>
 
+        {/* Contact Information */}
         <div className="admin-card" style={{ marginTop: '24px' }}>
           <div className="admin-card-header">
-            <h3>Contact Information</h3>
+            <div>
+              <h3>Contact &amp; Studio Coordinates</h3>
+              <p className="admin-card-subtitle">Official support email, WhatsApp channel, and studio atelier address</p>
+            </div>
           </div>
-          <div className="modal-body">
+          <div className="admin-card-body">
             <div className="form-row-2">
               <div className="field-group">
                 <label>Support Email Address</label>
@@ -182,18 +211,20 @@ export function AdminSettings() {
               </div>
             </div>
 
-            <div className="field-group">
-              <label>Studio / Physical Address</label>
+            <div className="field-group" style={{ marginTop: '14px' }}>
+              <label>Studio Atelier Address</label>
               <input
                 type="text"
                 value={settings.address}
                 onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                placeholder="Lyari, Karachi, Pakistan"
               />
             </div>
 
-            <div style={{ marginTop: '24px' }}>
-              <button type="submit" className="btn" disabled={saving}>
-                {saving ? 'Saving...' : 'Save All Settings'}
+            <div style={{ marginTop: '28px' }}>
+              <button type="submit" className="admin-btn-primary" disabled={saving}>
+                <Save size={16} strokeWidth={2} />
+                <span>{saving ? 'Saving changes...' : 'Save Configuration'}</span>
               </button>
             </div>
           </div>

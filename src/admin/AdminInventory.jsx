@@ -1,4 +1,13 @@
 import { useState, useEffect } from 'react'
+import {
+  Search,
+  Boxes,
+  Sliders,
+  X,
+  ArrowUpDown,
+  History,
+  ShoppingBag,
+} from 'lucide-react'
 import { inventoryAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 
@@ -68,43 +77,47 @@ export function AdminInventory() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Inventory &amp; Stock Levels</h1>
-          <p className="muted font-sm">Monitor live stock by variant and log adjustment audits</p>
+          <p className="admin-page-subtitle">Variant inventory tracking, replenishment controls, and movement audit trail</p>
         </div>
       </div>
 
       <div className="admin-toolbar-row">
-        <div className="admin-search-input-wrap">
+        <div className="admin-search-box">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
-            placeholder="Search by product name, SKU..."
+            placeholder="Search by article title, SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <label className="filter-checkbox-label">
+        <label className="admin-custom-checkbox">
           <input
             type="checkbox"
             checked={lowStockOnly}
             onChange={(e) => setLowStockOnly(e.target.checked)}
           />
-          <span>Show Low Stock Items Only</span>
+          <span>Show Low Stock Articles Only</span>
         </label>
       </div>
 
       {/* Stock Levels Table */}
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-spinner">Loading inventory...</div>
+          <div className="admin-loading-spinner-wrap">
+            <div className="admin-spinner-ring" />
+            <span>Loading inventory records...</span>
+          </div>
         ) : products.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Product</th>
+                  <th>Article</th>
                   <th>SKU</th>
                   <th>Total Units</th>
-                  <th>Sizes Breakdown</th>
+                  <th>Size Breakdown</th>
                   <th>Threshold</th>
                   <th className="text-right">Action</th>
                 </tr>
@@ -119,9 +132,14 @@ export function AdminInventory() {
                           {p.images && p.images[0] ? (
                             <img src={p.images[0]} alt={p.name} className="admin-thumb" />
                           ) : (
-                            <div className="ph small admin-thumb">KESHK</div>
+                            <div className="admin-thumb-empty">
+                              <ShoppingBag size={16} strokeWidth={1.5} />
+                            </div>
                           )}
-                          <strong>{p.name}</strong>
+                          <div>
+                            <strong className="admin-prod-title">{p.name}</strong>
+                            <div className="muted font-xs">{p.collectionSlug}</div>
+                          </div>
                         </div>
                       </td>
                       <td><span className="font-xs font-mono">{p.sku}</span></td>
@@ -134,7 +152,8 @@ export function AdminInventory() {
                         <div className="variant-chips-wrap">
                           {p.sizes?.map((s) => (
                             <span key={s.size} className="variant-chip">
-                              {s.size}: <strong>{s.stock}</strong>
+                              <span className="size-label">{s.size}</span>
+                              <strong className="size-val">{s.stock}</strong>
                             </span>
                           ))}
                         </div>
@@ -143,10 +162,11 @@ export function AdminInventory() {
                       <td className="text-right">
                         <button
                           type="button"
-                          className="btn sm light"
+                          className="admin-btn-secondary admin-btn-xs"
                           onClick={() => handleOpenAdjust(p)}
                         >
-                          Adjust Stock
+                          <Sliders size={13} />
+                          <span>Adjust</span>
                         </button>
                       </td>
                     </tr>
@@ -156,44 +176,48 @@ export function AdminInventory() {
             </table>
           </div>
         ) : (
-          <div className="admin-empty-pane">
-            <p className="muted">No products found matching criteria.</p>
+          <div className="admin-empty-state-box">
+            <Boxes size={32} strokeWidth={1.5} className="muted" />
+            <p>No inventory records found matching your filters.</p>
           </div>
         )}
       </div>
 
       {/* Recent Inventory Audit Logs */}
-      <div className="admin-card" style={{ marginTop: '32px' }}>
+      <div className="admin-card" style={{ marginTop: '28px' }}>
         <div className="admin-card-header">
-          <h3>Recent Inventory Movements &amp; Audits</h3>
+          <div>
+            <h3>Inventory Audit Trail</h3>
+            <p className="admin-card-subtitle">Real-time ledger of replenishment additions and order deductions</p>
+          </div>
         </div>
         {logs.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Product</th>
+                  <th>Timestamp</th>
+                  <th>Article</th>
                   <th>Variant</th>
-                  <th>Change</th>
+                  <th>Adjustment</th>
                   <th>Balance</th>
                   <th>Type</th>
-                  <th>Reason</th>
+                  <th>Reason / Context</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log) => (
                   <tr key={log._id}>
-                    <td><span className="font-xs">{new Date(log.createdAt).toLocaleString()}</span></td>
+                    <td><span className="font-xs muted">{new Date(log.createdAt).toLocaleString()}</span></td>
                     <td><strong>{log.productName}</strong></td>
-                    <td>{log.size || 'General'}</td>
+                    <td><span className="variant-chip">{log.size || 'General'}</span></td>
                     <td>
                       <span className={`font-medium ${log.quantityChange > 0 ? 'text-success' : 'text-danger'}`}>
                         {log.quantityChange > 0 ? `+${log.quantityChange}` : log.quantityChange}
                       </span>
                     </td>
-                    <td>{log.previousStock} → <strong>{log.newStock}</strong></td>
-                    <td><span className="uppercase font-xs">{log.changeType}</span></td>
+                    <td><span className="font-sm">{log.previousStock} → <strong>{log.newStock}</strong></span></td>
+                    <td><span className="status-pill pill-sm status-processing">{log.changeType}</span></td>
                     <td><span className="font-sm muted">{log.reason}</span></td>
                   </tr>
                 ))}
@@ -201,32 +225,43 @@ export function AdminInventory() {
             </table>
           </div>
         ) : (
-          <p className="muted" style={{ padding: '20px' }}>No inventory movements logged yet.</p>
+          <div className="admin-empty-state-box">
+            <History size={28} strokeWidth={1.5} className="muted" />
+            <p>No inventory movements recorded yet.</p>
+          </div>
         )}
       </div>
 
       {/* ADJUST STOCK MODAL */}
       {adjustModalProduct && (
-        <div className="search-overlay" onClick={() => setAdjustModalProduct(null)}>
-          <div className="modal-dialog-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Adjust Stock: {adjustModalProduct.name}</h3>
-              <button type="button" className="icon-btn" onClick={() => setAdjustModalProduct(null)}>
-                ✕
+        <div className="admin-modal-overlay" onClick={() => setAdjustModalProduct(null)}>
+          <div className="admin-modal-card admin-modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 className="admin-modal-title">Adjust Stock: {adjustModalProduct.name}</h3>
+                <p className="admin-modal-subtitle">Record stock adjustments, replenishment consignments, or damaged write-offs</p>
+              </div>
+              <button
+                type="button"
+                className="admin-modal-close-btn"
+                onClick={() => setAdjustModalProduct(null)}
+                aria-label="Close dialog"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveAdjustment} className="modal-body">
+            <form onSubmit={handleSaveAdjustment} className="admin-modal-body">
               <div className="form-row-2">
                 <div className="field-group">
-                  <label>Select Size Variant</label>
+                  <label>Variant Size</label>
                   <select
                     value={selectedSize}
                     onChange={(e) => setSelectedSize(e.target.value)}
                   >
                     {adjustModalProduct.sizes?.map((s) => (
                       <option key={s.size} value={s.size}>
-                        Size {s.size} (Current: {s.stock})
+                        Size {s.size} (Current: {s.stock} units)
                       </option>
                     ))}
                   </select>
@@ -240,31 +275,31 @@ export function AdminInventory() {
                     onChange={(e) => setQuantityChange(e.target.value)}
                     placeholder="e.g. 10 or -5"
                   />
-                  <span className="hint-note">Enter positive to add stock, negative to subtract.</span>
+                  <span className="admin-field-hint">Positive number to add, negative to deduct.</span>
                 </div>
               </div>
 
               <div className="field-group">
-                <label>Reason for Adjustment</label>
+                <label>Audit Justification / Memo *</label>
                 <input
                   type="text"
                   required
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  placeholder="e.g. Received new consignment, damaged item written off"
+                  placeholder="e.g. Received new Lyari workshop batch, showroom sample write-off"
                 />
               </div>
 
-              <div className="modal-actions-row">
+              <div className="admin-modal-footer">
                 <button
                   type="button"
-                  className="btn sm light"
+                  className="admin-btn-secondary"
                   onClick={() => setAdjustModalProduct(null)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn sm" disabled={adjusting}>
-                  {adjusting ? 'Saving...' : 'Apply Adjustment'}
+                <button type="submit" className="admin-btn-primary" disabled={adjusting}>
+                  {adjusting ? 'Saving...' : 'Apply Stock Change'}
                 </button>
               </div>
             </form>

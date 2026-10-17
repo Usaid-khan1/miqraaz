@@ -4,6 +4,26 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { ordersAPI } from '../services/api.js'
 import { money } from '../data.js'
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  MapPin,
+  ShieldCheck,
+  LogOut,
+  ArrowRight,
+  Plus,
+  Trash2,
+  X,
+  Eye,
+  CheckCircle2,
+  Clock,
+  Truck,
+  Package,
+  AlertTriangle,
+  User,
+  Phone,
+  Mail,
+} from 'lucide-react'
 
 export function Account() {
   const {
@@ -17,7 +37,7 @@ export function Account() {
     deleteAddress,
   } = useAuth()
 
-  const { showToast } = useToast()
+  const { showToast, confirmModal } = useToast()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -125,6 +145,22 @@ export function Account() {
     }
   }
 
+  const handleDeleteAddress = async (addr) => {
+    const confirmed = await confirmModal({
+      title: 'Delete Address',
+      message: `Are you sure you want to remove the shipping address for "${addr.fullName}"?`,
+      confirmText: 'Delete Address',
+      isDanger: true,
+    })
+    if (confirmed) {
+      try {
+        await deleteAddress(addr._id)
+      } catch {
+        // Toast handled by AuthContext
+      }
+    }
+  }
+
   const handleRequestCancellation = async (e) => {
     e.preventDefault()
     if (!cancelModalOrder) return
@@ -166,28 +202,32 @@ export function Account() {
             className={`account-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setSearchParams({ tab: 'overview' })}
           >
-            Overview
+            <LayoutDashboard size={16} />
+            <span>Overview</span>
           </button>
           <button
             type="button"
             className={`account-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setSearchParams({ tab: 'orders' })}
           >
-            My Orders ({orders.length})
+            <ShoppingBag size={16} />
+            <span>My Orders ({orders.length})</span>
           </button>
           <button
             type="button"
             className={`account-nav-item ${activeTab === 'addresses' ? 'active' : ''}`}
             onClick={() => setSearchParams({ tab: 'addresses' })}
           >
-            Saved Addresses ({user?.addresses?.length || 0})
+            <MapPin size={16} />
+            <span>Saved Addresses ({user?.addresses?.length || 0})</span>
           </button>
           <button
             type="button"
             className={`account-nav-item ${activeTab === 'security' ? 'active' : ''}`}
             onClick={() => setSearchParams({ tab: 'security' })}
           >
-            Profile &amp; Security
+            <ShieldCheck size={16} />
+            <span>Profile &amp; Security</span>
           </button>
           <hr className="account-nav-sep" />
           <button
@@ -198,7 +238,8 @@ export function Account() {
               navigate('/')
             }}
           >
-            Sign Out
+            <LogOut size={16} />
+            <span>Sign Out</span>
           </button>
         </aside>
 
@@ -213,14 +254,15 @@ export function Account() {
                 <div className="overview-card">
                   <h4>Account Details</h4>
                   <p><strong>{user?.name}</strong></p>
-                  <p>{user?.email}</p>
-                  <p>{user?.phone || 'No phone number provided'}</p>
+                  <p className="font-sm muted">{user?.email}</p>
+                  <p className="font-sm muted">{user?.phone || 'No phone number provided'}</p>
                   <button
                     type="button"
-                    className="link font-sm"
+                    className="link font-sm account-action-link"
                     onClick={() => setSearchParams({ tab: 'security' })}
                   >
-                    Edit details →
+                    <span>Edit details</span>
+                    <ArrowRight size={13} />
                   </button>
                 </div>
 
@@ -232,27 +274,29 @@ export function Account() {
                       return (
                         <>
                           <p><strong>{def.fullName}</strong> ({def.phone})</p>
-                          <p>{def.address}</p>
-                          <p>{def.city}, {def.country}</p>
+                          <p className="font-sm muted">{def.address}</p>
+                          <p className="font-sm muted">{def.city}, {def.country}</p>
                           <button
                             type="button"
-                            className="link font-sm"
+                            className="link font-sm account-action-link"
                             onClick={() => setSearchParams({ tab: 'addresses' })}
                           >
-                            Manage addresses →
+                            <span>Manage addresses</span>
+                            <ArrowRight size={13} />
                           </button>
                         </>
                       )
                     })()
                   ) : (
                     <>
-                      <p className="muted">No saved addresses yet.</p>
+                      <p className="muted font-sm">No saved addresses yet.</p>
                       <button
                         type="button"
-                        className="btn sm light"
+                        className="btn sm light flex-btn"
                         onClick={() => setAddressModalOpen(true)}
                       >
-                        + Add Address
+                        <Plus size={14} />
+                        <span>Add Address</span>
                       </button>
                     </>
                   )}
@@ -265,10 +309,11 @@ export function Account() {
                   <h3>Recent Orders</h3>
                   <button
                     type="button"
-                    className="link font-sm"
+                    className="link font-sm account-action-link"
                     onClick={() => setSearchParams({ tab: 'orders' })}
                   >
-                    View all orders ({orders.length}) →
+                    <span>View all orders ({orders.length})</span>
+                    <ArrowRight size={13} />
                   </button>
                 </div>
 
@@ -300,10 +345,11 @@ export function Account() {
                             <td>
                               <button
                                 type="button"
-                                className="link"
+                                className="btn sm light flex-btn"
                                 onClick={() => setSelectedOrder(o)}
                               >
-                                View Details
+                                <Eye size={13} />
+                                <span>Details</span>
                               </button>
                             </td>
                           </tr>
@@ -314,8 +360,9 @@ export function Account() {
                 ) : (
                   <div className="empty-orders-note">
                     <p className="muted">You have not placed any orders yet.</p>
-                    <Link to="/collections/all" className="btn sm">
-                      Start Shopping
+                    <Link to="/collections/all" className="btn sm flex-btn">
+                      <ShoppingBag size={14} />
+                      <span>Start Shopping</span>
                     </Link>
                   </div>
                 )}
@@ -365,10 +412,11 @@ export function Account() {
                           <td>
                             <button
                               type="button"
-                              className="btn sm light"
+                              className="btn sm light flex-btn"
                               onClick={() => setSelectedOrder(o)}
                             >
-                              Details
+                              <Eye size={13} />
+                              <span>Details</span>
                             </button>
                           </td>
                         </tr>
@@ -379,8 +427,9 @@ export function Account() {
               ) : (
                 <div className="empty-orders-note">
                   <p className="muted">You have no order history.</p>
-                  <Link to="/collections/all" className="btn sm">
-                    Discover Collections
+                  <Link to="/collections/all" className="btn sm flex-btn">
+                    <ShoppingBag size={14} />
+                    <span>Discover Collections</span>
                   </Link>
                 </div>
               )}
@@ -394,10 +443,11 @@ export function Account() {
                 <h2>Saved Shipping Addresses</h2>
                 <button
                   type="button"
-                  className="btn sm"
+                  className="btn sm flex-btn"
                   onClick={() => setAddressModalOpen(true)}
                 >
-                  + Add New Address
+                  <Plus size={14} />
+                  <span>Add New Address</span>
                 </button>
               </div>
 
@@ -407,17 +457,18 @@ export function Account() {
                     <div key={a._id} className="address-box-card">
                       {a.isDefault && <span className="default-address-tag">Default</span>}
                       <h4>{a.fullName}</h4>
-                      <p>{a.phone}</p>
-                      <p>{a.address}</p>
-                      <p>{a.city}, {a.state} {a.postalCode}</p>
-                      <p>{a.country}</p>
+                      <p className="font-sm muted">{a.phone}</p>
+                      <p className="font-sm">{a.address}</p>
+                      <p className="font-sm muted">{a.city}, {a.state} {a.postalCode}</p>
+                      <p className="font-sm muted">{a.country}</p>
                       <div className="address-box-actions">
                         <button
                           type="button"
-                          className="link text-danger font-sm"
-                          onClick={() => deleteAddress(a._id)}
+                          className="link text-danger font-sm flex-btn"
+                          onClick={() => handleDeleteAddress(a)}
                         >
-                          Delete
+                          <Trash2 size={13} />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
@@ -428,10 +479,11 @@ export function Account() {
                   <p className="muted">You have no saved addresses.</p>
                   <button
                     type="button"
-                    className="btn sm"
+                    className="btn sm flex-btn"
                     onClick={() => setAddressModalOpen(true)}
                   >
-                    Add Your First Address
+                    <Plus size={14} />
+                    <span>Add Your First Address</span>
                   </button>
                 </div>
               )}
@@ -521,16 +573,17 @@ export function Account() {
 
       {/* ORDER DETAILS MODAL */}
       {selectedOrder && (
-        <div className="search-overlay" onClick={() => setSelectedOrder(null)}>
-          <div className="modal-dialog-card lg" onClick={(e) => e.stopPropagation()}>
+        <div className="account-modal-overlay" onClick={() => setSelectedOrder(null)}>
+          <div className="account-modal-card lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Order #{selectedOrder.orderNumber}</h3>
               <button
                 type="button"
                 className="icon-btn"
                 onClick={() => setSelectedOrder(null)}
+                aria-label="Close modal"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -665,19 +718,20 @@ export function Account() {
 
       {/* CANCELLATION REQUEST MODAL */}
       {cancelModalOrder && (
-        <div className="search-overlay" onClick={() => setCancelModalOrder(null)}>
-          <div className="modal-dialog-card" onClick={(e) => e.stopPropagation()}>
+        <div className="account-modal-overlay" onClick={() => setCancelModalOrder(null)}>
+          <div className="account-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Cancel Order #{cancelModalOrder.orderNumber}</h3>
               <button
                 type="button"
                 className="icon-btn"
                 onClick={() => setCancelModalOrder(null)}
+                aria-label="Close modal"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleRequestCancellation} className="modal-body">
+            <form onSubmit={handleRequestCancellation} className="modal-body-scroll">
               <p className="font-sm" style={{ marginBottom: '16px' }}>
                 Please provide a reason for cancelling this order:
               </p>
@@ -687,7 +741,7 @@ export function Account() {
                 placeholder="e.g. Changed my mind, ordered wrong size..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                style={{ width: '100%', padding: '10px', marginBottom: '16px' }}
+                style={{ width: '100%', padding: '10px', marginBottom: '16px', border: '1px solid #d4d4d4' }}
               />
               <div className="modal-actions-row">
                 <button
@@ -708,19 +762,20 @@ export function Account() {
 
       {/* ADD ADDRESS MODAL */}
       {addressModalOpen && (
-        <div className="search-overlay" onClick={() => setAddressModalOpen(false)}>
-          <div className="modal-dialog-card" onClick={(e) => e.stopPropagation()}>
+        <div className="account-modal-overlay" onClick={() => setAddressModalOpen(false)}>
+          <div className="account-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Add Shipping Address</h3>
               <button
                 type="button"
                 className="icon-btn"
                 onClick={() => setAddressModalOpen(false)}
+                aria-label="Close modal"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleAddAddress} className="modal-body">
+            <form onSubmit={handleAddAddress} className="modal-body-scroll">
               <div className="form-row-2">
                 <div className="field-group">
                   <label>Full Name *</label>

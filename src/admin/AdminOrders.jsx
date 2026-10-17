@@ -1,4 +1,19 @@
 import { useState, useEffect } from 'react'
+import {
+  Search,
+  Eye,
+  X,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  Truck,
+  CreditCard,
+  User,
+  MapPin,
+  Clock,
+  CheckCircle2,
+} from 'lucide-react'
 import { ordersAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 import { money } from '../data.js'
@@ -55,7 +70,7 @@ export function AdminOrders() {
         paymentStatus: newPaymentStatus,
         note: statusNote,
       })
-      showToast('Order status updated', 'success')
+      showToast('Order fulfillment status updated', 'success')
       setSelectedOrder(res.order)
       loadOrders()
     } catch (err) {
@@ -73,7 +88,7 @@ export function AdminOrders() {
         trackingNumber,
         trackingCarrier: carrier,
       })
-      showToast('Tracking details saved', 'success')
+      showToast('Tracking credentials saved', 'success')
       setSelectedOrder(res.order)
       loadOrders()
     } catch (err) {
@@ -103,13 +118,14 @@ export function AdminOrders() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Orders Management</h1>
-          <p className="muted font-sm">Inspect orders, update fulfillment lifecycles, and dispatch tracking</p>
+          <p className="admin-page-subtitle">Inspect client orders, manage fulfillment stages, and allocate logistics tracking</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="admin-toolbar-row">
-        <div className="admin-search-input-wrap">
+        <div className="admin-search-box">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
             placeholder="Search by order number (MK-...), customer name..."
@@ -141,20 +157,23 @@ export function AdminOrders() {
       {/* Orders Table */}
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-spinner">Loading orders...</div>
+          <div className="admin-loading-spinner-wrap">
+            <div className="admin-spinner-ring" />
+            <span>Loading customer orders...</span>
+          </div>
         ) : orders.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Order #</th>
+                  <th>Order</th>
                   <th>Customer</th>
                   <th>Date</th>
-                  <th>Items</th>
+                  <th>Units</th>
                   <th>Payment</th>
                   <th>Status</th>
                   <th>Total</th>
-                  <th className="text-right">Actions</th>
+                  <th className="text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,20 +182,20 @@ export function AdminOrders() {
                     <td>
                       <button
                         type="button"
-                        className="link font-medium"
+                        className="admin-table-key-link"
                         onClick={() => handleOpenOrder(o)}
                       >
                         {o.orderNumber}
                       </button>
                     </td>
                     <td>
-                      <div><strong>{o.shippingAddress?.fullName}</strong></div>
+                      <div className="font-medium">{o.shippingAddress?.fullName}</div>
                       <div className="muted font-xs">{o.shippingAddress?.phone}</div>
                     </td>
-                    <td><span className="font-xs">{new Date(o.createdAt).toLocaleDateString()}</span></td>
-                    <td>{o.items?.reduce((s, i) => s + i.qty, 0)} pcs</td>
+                    <td><span className="font-xs muted">{new Date(o.createdAt).toLocaleDateString()}</span></td>
+                    <td><span className="font-sm">{o.items?.reduce((s, i) => s + i.qty, 0)} pcs</span></td>
                     <td>
-                      <div className="uppercase font-xs"><strong>{o.paymentMethod}</strong></div>
+                      <div className="font-xs font-medium uppercase">{o.paymentMethod}</div>
                       <span className={`status-pill pill-sm status-${o.paymentStatus}`}>
                         {o.paymentStatus}
                       </span>
@@ -186,17 +205,18 @@ export function AdminOrders() {
                         {o.orderStatus}
                       </span>
                       {o.cancellationRequested && !o.cancellationApproved && (
-                        <div className="pill-sub-notice">Cancel Req.</div>
+                        <div className="pill-sub-notice">Cancel Requested</div>
                       )}
                     </td>
                     <td><strong>{money(o.total)}</strong></td>
                     <td className="text-right">
                       <button
                         type="button"
-                        className="btn sm light"
+                        className="admin-btn-secondary admin-btn-xs"
                         onClick={() => handleOpenOrder(o)}
                       >
-                        Inspect
+                        <Eye size={13} />
+                        <span>Inspect</span>
                       </button>
                     </td>
                   </tr>
@@ -205,8 +225,9 @@ export function AdminOrders() {
             </table>
           </div>
         ) : (
-          <div className="admin-empty-pane">
-            <p className="muted">No orders found.</p>
+          <div className="admin-empty-state-box">
+            <Package size={32} strokeWidth={1.5} className="muted" />
+            <p>No orders found matching the filter criteria.</p>
           </div>
         )}
       </div>
@@ -220,7 +241,8 @@ export function AdminOrders() {
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            ← Previous
+            <ChevronLeft size={15} />
+            <span>Previous</span>
           </button>
           <span className="page-indicator">
             Page {page} of {pagination.totalPages}
@@ -231,45 +253,50 @@ export function AdminOrders() {
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
           >
-            Next →
+            <span>Next</span>
+            <ChevronRight size={15} />
           </button>
         </div>
       )}
 
       {/* ORDER INSPECTION MODAL */}
       {selectedOrder && (
-        <div className="search-overlay" onClick={() => setSelectedOrder(null)}>
-          <div className="modal-dialog-card xl" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="admin-modal-overlay" onClick={() => setSelectedOrder(null)}>
+          <div className="admin-modal-card admin-modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
               <div>
-                <h3>Order #{selectedOrder.orderNumber}</h3>
-                <span className="muted font-xs">
-                  Placed {new Date(selectedOrder.createdAt).toLocaleString()}
-                </span>
+                <h3 className="admin-modal-title">Order #{selectedOrder.orderNumber}</h3>
+                <p className="admin-modal-subtitle">
+                  Recorded on {new Date(selectedOrder.createdAt).toLocaleString()} • Client: {selectedOrder.shippingAddress?.fullName}
+                </p>
               </div>
               <button
                 type="button"
-                className="icon-btn"
+                className="admin-modal-close-btn"
                 onClick={() => setSelectedOrder(null)}
+                aria-label="Close dialog"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
-            <div className="modal-body-scroll">
+            <div className="admin-modal-body">
               {/* Cancellation Request Warning */}
               {selectedOrder.cancellationRequested && !selectedOrder.cancellationApproved && (
-                <div className="admin-alert-banner alert-warning">
-                  <div>
-                    <strong>⚠️ Cancellation Request Pending</strong>
+                <div className="admin-alert-box alert-warning">
+                  <div className="admin-alert-icon-wrap">
+                    <AlertTriangle size={18} />
+                  </div>
+                  <div className="admin-alert-text">
+                    <strong>Cancellation Request Pending</strong>
                     <p className="font-sm">
                       Customer requested cancellation. Reason: &ldquo;{selectedOrder.cancellationReason}&rdquo;
                     </p>
                   </div>
-                  <div className="alert-actions">
+                  <div className="admin-alert-buttons">
                     <button
                       type="button"
-                      className="btn sm"
+                      className="admin-btn-primary admin-btn-xs"
                       onClick={() => handleCancellationDecision(true)}
                       disabled={updating}
                     >
@@ -277,7 +304,7 @@ export function AdminOrders() {
                     </button>
                     <button
                       type="button"
-                      className="btn sm light"
+                      className="admin-btn-secondary admin-btn-xs"
                       onClick={() => handleCancellationDecision(false)}
                       disabled={updating}
                     >
@@ -288,12 +315,15 @@ export function AdminOrders() {
               )}
 
               {/* Status Update & Tracking Controls */}
-              <div className="order-manage-controls-grid">
-                <div className="manage-box">
-                  <h4>Update Order Lifecycle</h4>
+              <div className="form-row-2" style={{ marginBottom: '24px' }}>
+                <div className="admin-subcard">
+                  <div className="admin-subcard-header">
+                    <Clock size={16} strokeWidth={1.8} />
+                    <h4>Fulfillment &amp; Payment Lifecycle</h4>
+                  </div>
                   <div className="form-row-2">
                     <div className="field-group">
-                      <label>Fulfillment Status</label>
+                      <label>Fulfillment Stage</label>
                       <select
                         value={newStatus}
                         onChange={(e) => setNewStatus(e.target.value)}
@@ -319,83 +349,100 @@ export function AdminOrders() {
                       </select>
                     </div>
                   </div>
-                  <div className="field-group">
-                    <label>Status Note / Reason</label>
+                  <div className="field-group" style={{ marginTop: '10px' }}>
+                    <label>Audit Memo / Reason</label>
                     <input
                       type="text"
-                      placeholder="e.g. Dispatched with CallCourier"
+                      placeholder="e.g. Dispatched via TCS Express Karachi Hub"
                       value={statusNote}
                       onChange={(e) => setStatusNote(e.target.value)}
                     />
                   </div>
-                  <button
-                    type="button"
-                    className="btn sm"
-                    onClick={handleUpdateStatus}
-                    disabled={updating}
-                  >
-                    Save Status
-                  </button>
+                  <div style={{ marginTop: '14px' }}>
+                    <button
+                      type="button"
+                      className="admin-btn-primary admin-btn-xs"
+                      onClick={handleUpdateStatus}
+                      disabled={updating}
+                    >
+                      Apply Status Change
+                    </button>
+                  </div>
                 </div>
 
-                <div className="manage-box">
-                  <h4>Courier Tracking Details</h4>
+                <div className="admin-subcard">
+                  <div className="admin-subcard-header">
+                    <Truck size={16} strokeWidth={1.8} />
+                    <h4>Courier &amp; Logistics Tracking</h4>
+                  </div>
                   <div className="field-group">
-                    <label>Carrier Name</label>
+                    <label>Courier Carrier</label>
                     <input
                       type="text"
-                      placeholder="e.g. TCS, Leopards, Call Courier"
+                      placeholder="e.g. TCS Express, Leopards, CallCourier"
                       value={carrier}
                       onChange={(e) => setCarrier(e.target.value)}
                     />
                   </div>
-                  <div className="field-group">
-                    <label>Tracking Number</label>
+                  <div className="field-group" style={{ marginTop: '10px' }}>
+                    <label>Tracking Number / Waybill</label>
                     <input
                       type="text"
-                      placeholder="e.g. 7891234567"
+                      placeholder="e.g. TCS-77291034"
                       value={trackingNumber}
                       onChange={(e) => setTrackingNumber(e.target.value)}
                     />
                   </div>
-                  <button
-                    type="button"
-                    className="btn sm"
-                    onClick={handleUpdateTracking}
-                    disabled={updating}
-                  >
-                    Save Tracking Info
-                  </button>
+                  <div style={{ marginTop: '14px' }}>
+                    <button
+                      type="button"
+                      className="admin-btn-primary admin-btn-xs"
+                      onClick={handleUpdateTracking}
+                      disabled={updating}
+                    >
+                      Save Tracking
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Customer and Shipping Snapshot */}
-              <div className="overview-two-col-grid" style={{ margin: '20px 0' }}>
+              <div className="form-row-2" style={{ marginBottom: '24px' }}>
                 <div className="admin-subcard">
-                  <h4>Customer Info</h4>
-                  <p><strong>Name:</strong> {selectedOrder.shippingAddress?.fullName}</p>
-                  <p><strong>Phone:</strong> {selectedOrder.shippingAddress?.phone}</p>
-                  <p><strong>User Email:</strong> {selectedOrder.user?.email || 'N/A'}</p>
+                  <div className="admin-subcard-header">
+                    <User size={16} strokeWidth={1.8} />
+                    <h4>Customer Profile</h4>
+                  </div>
+                  <p className="admin-meta-row"><strong>Name:</strong> {selectedOrder.shippingAddress?.fullName}</p>
+                  <p className="admin-meta-row"><strong>Phone:</strong> {selectedOrder.shippingAddress?.phone}</p>
+                  <p className="admin-meta-row"><strong>User Email:</strong> {selectedOrder.user?.email || 'Guest'}</p>
                 </div>
+
                 <div className="admin-subcard">
-                  <h4>Shipping Address</h4>
-                  <p>{selectedOrder.shippingAddress?.address}</p>
-                  <p>{selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}</p>
-                  <p>{selectedOrder.shippingAddress?.country}</p>
+                  <div className="admin-subcard-header">
+                    <MapPin size={16} strokeWidth={1.8} />
+                    <h4>Shipping Destination</h4>
+                  </div>
+                  <p className="admin-meta-row">{selectedOrder.shippingAddress?.address}</p>
+                  <p className="admin-meta-row">{selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}</p>
+                  <p className="admin-meta-row">{selectedOrder.shippingAddress?.country || 'Pakistan'} • Postal: {selectedOrder.shippingAddress?.postalCode || '—'}</p>
                 </div>
               </div>
 
-              {/* Items Table Snapshot */}
-              <div className="admin-subcard">
-                <h4>Ordered Items</h4>
+              {/* Ordered Items Table */}
+              <div className="admin-subcard" style={{ marginBottom: '24px' }}>
+                <div className="admin-subcard-header">
+                  <Package size={16} strokeWidth={1.8} />
+                  <h4>Ordered Articles ({selectedOrder.items?.length || 0})</h4>
+                </div>
                 <div className="admin-table-wrap">
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Item</th>
-                        <th>Size</th>
+                        <th>Article</th>
+                        <th>Variant Size</th>
                         <th>Unit Price</th>
-                        <th>Qty</th>
+                        <th>Quantity</th>
                         <th className="text-right">Line Total</th>
                       </tr>
                     </thead>
@@ -407,12 +454,14 @@ export function AdminOrders() {
                               {item.image ? (
                                 <img src={item.image} alt={item.name} className="admin-thumb" />
                               ) : (
-                                <div className="ph small admin-thumb">KESHK</div>
+                                <div className="admin-thumb-empty">
+                                  <Package size={16} strokeWidth={1.5} />
+                                </div>
                               )}
-                              <strong>{item.name}</strong>
+                              <strong className="admin-prod-title">{item.name}</strong>
                             </div>
                           </td>
-                          <td>{item.size}</td>
+                          <td><span className="variant-chip">{item.size}</span></td>
                           <td>{money(item.price)}</td>
                           <td>{item.qty}</td>
                           <td className="text-right font-medium">
@@ -424,40 +473,43 @@ export function AdminOrders() {
                   </table>
                 </div>
 
-                <div className="order-totals-snapshot-box">
-                  <div className="row font-sm">
+                <div className="order-totals-summary-box">
+                  <div className="summary-calc-row font-sm">
                     <span>Subtotal</span>
                     <span>{money(selectedOrder.subtotal)}</span>
                   </div>
                   {selectedOrder.discount > 0 && (
-                    <div className="row font-sm text-discount">
-                      <span>Discount ({selectedOrder.coupon?.code || 'Coupon'})</span>
+                    <div className="summary-calc-row font-sm text-discount">
+                      <span>Discount ({selectedOrder.coupon?.code || 'Promo'})</span>
                       <span>−{money(selectedOrder.discount)}</span>
                     </div>
                   )}
-                  <div className="row font-sm">
+                  <div className="summary-calc-row font-sm">
                     <span>Shipping Fee</span>
                     <span>{selectedOrder.shippingFee === 0 ? 'FREE' : money(selectedOrder.shippingFee)}</span>
                   </div>
-                  <hr className="summary-sep" />
-                  <div className="row font-medium font-lg">
+                  <div className="summary-calc-divider" />
+                  <div className="summary-calc-row grand-total font-medium">
                     <span>Grand Total</span>
                     <span>{money(selectedOrder.total)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Status History Timeline */}
+              {/* Status Audit Timeline */}
               {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
-                <div className="admin-subcard" style={{ marginTop: '20px' }}>
-                  <h4>Audit Timeline</h4>
+                <div className="admin-subcard">
+                  <div className="admin-subcard-header">
+                    <Clock size={16} strokeWidth={1.8} />
+                    <h4>Lifecycle Audit Trail</h4>
+                  </div>
                   <ul className="timeline-list">
                     {selectedOrder.statusHistory.map((sh, idx) => (
                       <li key={idx} className="timeline-item">
                         <span className="timeline-dot" />
                         <div className="timeline-content">
                           <span className="timeline-status uppercase font-medium">{sh.status}</span>
-                          <span className="timeline-date font-sm muted">
+                          <span className="timeline-date font-xs muted">
                             {new Date(sh.changedAt).toLocaleString()}
                           </span>
                           {sh.note && <p className="timeline-note font-sm">{sh.note}</p>}
@@ -467,6 +519,16 @@ export function AdminOrders() {
                   </ul>
                 </div>
               )}
+            </div>
+
+            <div className="admin-modal-footer">
+              <button
+                type="button"
+                className="admin-btn-secondary"
+                onClick={() => setSelectedOrder(null)}
+              >
+                Close Inspector
+              </button>
             </div>
           </div>
         </div>

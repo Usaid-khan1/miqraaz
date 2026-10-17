@@ -156,9 +156,11 @@ const seedProducts = [
   },
 ]
 
-const seedDatabase = async () => {
+export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
   try {
-    await connectDB()
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB()
+    }
     console.log('[Seed] Seeding database...')
 
     // 1. Store settings
@@ -307,11 +309,18 @@ const seedDatabase = async () => {
     console.log(`[Seed] Coupons (including FIRST-ORDER-ONLY coupon) seeded.`)
 
     console.log('[Seed] Database seeding completed successfully!')
-    process.exit(0)
+    if (exitOnComplete) {
+      process.exit(0)
+    }
   } catch (error) {
     console.error(`[Seed] Error: ${error.message}`)
-    process.exit(1)
+    if (exitOnComplete) {
+      process.exit(1)
+    }
+    throw error
   }
 }
 
-seedDatabase()
+if (process.argv[1] && (process.argv[1].endsWith('seed.js') || process.argv[1].includes('seed'))) {
+  seedDatabase({ exitOnComplete: true })
+}

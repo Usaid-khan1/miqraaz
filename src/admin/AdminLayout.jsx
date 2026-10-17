@@ -1,26 +1,48 @@
-import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  FolderTree,
+  PackageCheck,
+  Users,
+  TicketPercent,
+  Boxes,
+  SlidersHorizontal,
+  ArrowUpRight,
+  LogOut,
+  ShieldCheck,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { LOGO_WHITE } from '../data.js'
 
 export function AdminLayout() {
   const { user, isAuthenticated, isAdmin, loading, logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
 
   if (loading) {
-    return <div className="admin-loading-screen">Verifying administrator authorization...</div>
+    return (
+      <div className="admin-loading-screen">
+        <div className="admin-spinner-ring" />
+        <span>Verifying administrator authorization...</span>
+      </div>
+    )
   }
 
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="section center narrow" style={{ padding: '80px 20px' }}>
-        <h2>Access Restricted</h2>
-        <p className="muted" style={{ margin: '16px 0 24px' }}>
-          You must be signed in with administrator privileges to access this control panel.
-        </p>
-        <Link to="/login?redirect=/admin" className="btn">
-          Sign In as Administrator
-        </Link>
+      <div className="admin-access-restricted-wrap">
+        <div className="admin-access-restricted-card">
+          <div className="admin-restricted-icon-wrap">
+            <ShieldCheck size={32} strokeWidth={1.5} />
+          </div>
+          <h2>Access Restricted</h2>
+          <p className="muted">
+            You must be signed in with administrator privileges to access this control center.
+          </p>
+          <Link to="/login?redirect=/admin" className="btn sm">
+            Sign In as Administrator
+          </Link>
+        </div>
       </div>
     )
   }
@@ -30,91 +52,117 @@ export function AdminLayout() {
       {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <Link to="/" target="_blank" title="View Store">
-            <img src={LOGO_WHITE} alt="مِقْرَاض" height="28" />
+          <Link to="/" target="_blank" title="Open Storefront" className="admin-brand-logo-link">
+            <img src={LOGO_WHITE} alt="مِقْرَاض" height="26" />
           </Link>
-          <span className="admin-badge">Admin Panel</span>
+          <span className="admin-badge">Admin</span>
         </div>
 
         <nav className="admin-nav-menu">
+          <div className="admin-nav-group-title">Main Navigation</div>
+
           <NavLink
             to="/admin"
             end
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">📊</span> Overview
+            <LayoutDashboard size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Overview</span>
           </NavLink>
+
           <NavLink
             to="/admin/products"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">🏷️</span> Products
+            <ShoppingBag size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Products</span>
           </NavLink>
+
           <NavLink
             to="/admin/categories"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">📁</span> Categories
+            <FolderTree size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Categories</span>
           </NavLink>
+
           <NavLink
             to="/admin/orders"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">📦</span> Orders
+            <PackageCheck size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Orders</span>
           </NavLink>
+
           <NavLink
             to="/admin/customers"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">👥</span> Customers
+            <Users size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Customers</span>
           </NavLink>
+
+          <div className="admin-nav-group-title" style={{ marginTop: '16px' }}>Operations</div>
+
           <NavLink
             to="/admin/coupons"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">🎟️</span> Coupons
+            <TicketPercent size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Coupons</span>
           </NavLink>
+
           <NavLink
             to="/admin/inventory"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">📋</span> Inventory
+            <Boxes size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Inventory</span>
           </NavLink>
+
           <NavLink
             to="/admin/settings"
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
           >
-            <span className="admin-nav-icon">⚙️</span> Settings
+            <SlidersHorizontal size={17} strokeWidth={1.8} className="admin-nav-icon" />
+            <span>Settings</span>
           </NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">
-          <div className="admin-user-info">
-            <strong>{user?.name}</strong>
-            <span className="muted font-xs">{user?.email}</span>
+          <div className="admin-user-profile">
+            <div className="admin-avatar-initials">
+              {user?.name ? user.name.slice(0, 2).toUpperCase() : 'AD'}
+            </div>
+            <div className="admin-user-details">
+              <span className="admin-user-name">{user?.name}</span>
+              <span className="admin-user-email">{user?.email}</span>
+            </div>
           </div>
           <button
             type="button"
             className="admin-logout-btn"
+            title="Sign out of Admin"
             onClick={() => {
               logout()
               navigate('/')
             }}
           >
-            Sign Out
+            <LogOut size={16} strokeWidth={1.8} />
           </button>
         </div>
       </aside>
 
-      {/* Main Content Pane */}
+      {/* Main Content Wrap */}
       <div className="admin-main-wrap">
         <header className="admin-topbar">
-          <div className="admin-topbar-title">
-            <span>Control Center</span>
+          <div className="admin-topbar-left">
+            <span className="admin-topbar-breadcrumb">Management Console</span>
           </div>
           <div className="admin-topbar-actions">
             <Link to="/" target="_blank" className="admin-preview-store-btn">
-              View Live Store ↗
+              <span>View Live Store</span>
+              <ArrowUpRight size={14} strokeWidth={2} />
             </Link>
           </div>
         </header>

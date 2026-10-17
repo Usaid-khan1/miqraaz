@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { money } from '../data.js'
+import { Sparkles, ArrowLeft } from 'lucide-react'
 
 export function CartPage() {
   const { items, update, remove, subtotal, coupon, applyCoupon, removeCoupon } = useCart()
@@ -66,8 +67,9 @@ export function CartPage() {
       {/* Free Shipping Motivator Progress */}
       <div className="free-shipping-bar-wrap">
         {qualifiesForFreeShipping ? (
-          <div className="free-shipping-success">
-            🎉 Congratulations! Your order qualifies for <strong>FREE SHIPPING</strong>.
+          <div className="free-shipping-success flex-center-row">
+            <Sparkles size={16} />
+            <span>Congratulations! Your order qualifies for <strong>FREE SHIPPING</strong>.</span>
           </div>
         ) : (
           <div className="free-shipping-hint">
@@ -223,8 +225,9 @@ export function CartPage() {
             {isAuthenticated ? 'Proceed to Checkout' : 'Sign In & Check Out'}
           </button>
 
-          <Link to="/collections/all" className="continue-shopping-link">
-            ← Continue Shopping
+          <Link to="/collections/all" className="continue-shopping-link flex-center-row">
+            <ArrowLeft size={14} />
+            <span>Continue Shopping</span>
           </Link>
         </div>
       </div>

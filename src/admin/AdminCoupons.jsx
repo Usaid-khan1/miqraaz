@@ -1,4 +1,14 @@
 import { useState, useEffect } from 'react'
+import {
+  Plus,
+  TicketPercent,
+  Sparkles,
+  X,
+  Edit3,
+  Trash2,
+  ShieldCheck,
+  Calendar,
+} from 'lucide-react'
 import { couponsAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
 import { money } from '../data.js'
@@ -11,7 +21,7 @@ export function AdminCoupons() {
   const [editingCoupon, setEditingCoupon] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [generatingCode, setGeneratingCode] = useState(false)
-  const { showToast } = useToast()
+  const { showToast, confirmModal } = useToast()
 
   const initialForm = {
     code: '',
@@ -74,7 +84,7 @@ export function AdminCoupons() {
       const prefix = form.isFirstOrderOnly ? 'WELCOME' : 'MK'
       const res = await couponsAPI.generateCodeAdmin(prefix)
       setForm((prev) => ({ ...prev, code: res.code }))
-      showToast(`Generated code: ${res.code}`, 'info')
+      showToast(`Generated voucher code: ${res.code}`, 'info')
     } catch (err) {
       showToast(err.message || 'Could not generate code', 'error')
     } finally {
@@ -114,10 +124,17 @@ export function AdminCoupons() {
   }
 
   const handleDelete = async (id, code) => {
-    if (!window.confirm(`Are you sure you want to delete coupon "${code}"?`)) return
+    const ok = await confirmModal({
+      title: 'Delete Voucher Code',
+      message: `Are you sure you want to permanently delete coupon "${code}"? Customers will no longer be able to apply this discount.`,
+      confirmText: 'Delete Coupon',
+      isDanger: true,
+    })
+    if (!ok) return
+
     try {
       await couponsAPI.deleteAdmin(id)
-      showToast('Coupon deleted', 'success')
+      showToast(`Coupon "${code}" deleted successfully`, 'success')
       loadCoupons()
     } catch (err) {
       showToast(err.message || 'Failed to delete coupon', 'error')
@@ -128,28 +145,32 @@ export function AdminCoupons() {
     <div className="admin-page">
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Coupons &amp; Discounts</h1>
-          <p className="muted font-sm">Create promotional vouchers and first-time customer welcome coupons</p>
+          <h1 className="admin-page-title">Coupons &amp; Promotional Vouchers</h1>
+          <p className="admin-page-subtitle">Configure percentage &amp; fixed discounts, welcome vouchers, and redemption criteria</p>
         </div>
-        <button type="button" className="btn sm" onClick={handleOpenAdd}>
-          + Create New Coupon
+        <button type="button" className="admin-btn-primary" onClick={handleOpenAdd}>
+          <Plus size={16} strokeWidth={2} />
+          <span>New Coupon</span>
         </button>
       </div>
 
       <div className="admin-card">
         {loading ? (
-          <div className="admin-loading-spinner">Loading coupons...</div>
+          <div className="admin-loading-spinner-wrap">
+            <div className="admin-spinner-ring" />
+            <span>Loading coupons...</span>
+          </div>
         ) : coupons.length > 0 ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Code</th>
+                  <th>Voucher Code</th>
                   <th>Discount</th>
                   <th>Min. Order</th>
                   <th>First Order Only</th>
-                  <th>Used / Limit</th>
-                  <th>Expiry</th>
+                  <th>Redemptions</th>
+                  <th>Expiry Date</th>
                   <th>Status</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -168,23 +189,28 @@ export function AdminCoupons() {
                         <strong>{money(c.discountValue)} OFF</strong>
                       )}
                       {c.maxDiscount && (
-                        <div className="muted font-xs">Max {money(c.maxDiscount)}</div>
+                        <div className="muted font-xs">Capped at {money(c.maxDiscount)}</div>
                       )}
                     </td>
-                    <td>{c.minOrderValue ? money(c.minOrderValue) : 'None'}</td>
+                    <td><span className="font-sm">{c.minOrderValue ? money(c.minOrderValue) : 'None'}</span></td>
                     <td>
                       {c.isFirstOrderOnly ? (
-                        <span className="first-order-badge">✨ 1st Order Only</span>
+                        <span className="first-order-badge">
+                          <ShieldCheck size={12} strokeWidth={2} />
+                          <span>1st Order Only</span>
+                        </span>
                       ) : (
                         <span className="muted font-xs">All Customers</span>
                       )}
                     </td>
                     <td>
-                      <strong>{c.usedCount}</strong> / {c.usageLimit || '∞'}
+                      <span className="font-sm">
+                        <strong>{c.usedCount}</strong> / {c.usageLimit || 'Unlimited'}
+                      </span>
                     </td>
                     <td>
-                      <span className="font-xs">
-                        {c.expiryDate ? new Date(c.expiryDate).toLocaleDateString() : 'Never'}
+                      <span className="font-xs muted">
+                        {c.expiryDate ? new Date(c.expiryDate).toLocaleDateString() : 'No expiry'}
                       </span>
                     </td>
                     <td>
@@ -193,20 +219,24 @@ export function AdminCoupons() {
                       </span>
                     </td>
                     <td className="text-right">
-                      <button
-                        type="button"
-                        className="link font-sm mr-2"
-                        onClick={() => handleOpenEdit(c)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="link text-danger font-sm"
-                        onClick={() => handleDelete(c._id, c.code)}
-                      >
-                        Delete
-                      </button>
+                      <div className="admin-action-btn-group">
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn"
+                          title="Edit Coupon"
+                          onClick={() => handleOpenEdit(c)}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-icon-action-btn text-danger"
+                          title="Delete Coupon"
+                          onClick={() => handleDelete(c._id, c.code)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -214,53 +244,65 @@ export function AdminCoupons() {
             </table>
           </div>
         ) : (
-          <div className="admin-empty-pane">
-            <p className="muted">No coupons created yet.</p>
+          <div className="admin-empty-state-box">
+            <TicketPercent size={32} strokeWidth={1.5} className="muted" />
+            <p>No coupons or promotional vouchers created yet.</p>
           </div>
         )}
       </div>
 
       {/* CREATE / EDIT MODAL */}
       {modalOpen && (
-        <div className="search-overlay" onClick={() => setModalOpen(false)}>
-          <div className="modal-dialog-card lg" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editingCoupon ? `Edit Coupon: ${editingCoupon.code}` : 'Create New Coupon'}</h3>
-              <button type="button" className="icon-btn" onClick={() => setModalOpen(false)}>
-                ✕
+        <div className="admin-modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="admin-modal-card admin-modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 className="admin-modal-title">
+                  {editingCoupon ? `Edit Coupon: ${editingCoupon.code}` : 'Create New Promotional Voucher'}
+                </h3>
+                <p className="admin-modal-subtitle">Define promo code, discount parameters, and usage guardrails</p>
+              </div>
+              <button
+                type="button"
+                className="admin-modal-close-btn"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close dialog"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="modal-body-scroll">
+            <form onSubmit={handleSubmit} className="admin-modal-body">
               <div className="form-row-2">
                 <div className="field-group">
                   <div className="label-with-link">
                     <label>Coupon Code *</label>
                     <button
                       type="button"
-                      className="link font-xs"
+                      className="admin-text-link-btn"
                       onClick={handleGenerateCode}
                       disabled={generatingCode}
                     >
-                      🎲 Generate Code
+                      <Sparkles size={12} />
+                      <span>{generatingCode ? 'Generating...' : 'Generate Code'}</span>
                     </button>
                   </div>
                   <input
                     type="text"
                     required
-                    style={{ textTransform: 'uppercase' }}
+                    style={{ textTransform: 'uppercase', fontFamily: 'monospace', letterSpacing: '0.06em' }}
                     value={form.code}
                     onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                     placeholder="e.g. FIRST10, KESHK500"
                   />
                 </div>
                 <div className="field-group">
-                  <label>Description</label>
+                  <label>Voucher Description</label>
                   <input
                     type="text"
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="e.g. 10% welcome discount for new customers"
+                    placeholder="e.g. 10% welcome discount for first-time customers"
                   />
                 </div>
               </div>
@@ -288,13 +330,13 @@ export function AdminCoupons() {
                   />
                 </div>
                 <div className="field-group">
-                  <label>Max Discount Cap (PKR)</label>
+                  <label>Max Cap Amount (PKR)</label>
                   <input
                     type="number"
                     min={0}
                     value={form.maxDiscount}
                     onChange={(e) => setForm({ ...form, maxDiscount: e.target.value })}
-                    placeholder="e.g. 1500"
+                    placeholder="e.g. 1500 (optional)"
                   />
                 </div>
               </div>
@@ -311,7 +353,7 @@ export function AdminCoupons() {
                   />
                 </div>
                 <div className="field-group">
-                  <label>Expiry Date (Optional)</label>
+                  <label>Expiration Date</label>
                   <input
                     type="date"
                     value={form.expiryDate}
@@ -322,17 +364,17 @@ export function AdminCoupons() {
 
               <div className="form-row-2">
                 <div className="field-group">
-                  <label>Total Usage Limit (Optional)</label>
+                  <label>Total Campaign Usage Limit</label>
                   <input
                     type="number"
                     min={1}
                     value={form.usageLimit}
                     onChange={(e) => setForm({ ...form, usageLimit: e.target.value })}
-                    placeholder="Unlimited if empty"
+                    placeholder="Unlimited if left empty"
                   />
                 </div>
                 <div className="field-group">
-                  <label>Per-User Limit</label>
+                  <label>Per-Customer Limit</label>
                   <input
                     type="number"
                     min={1}
@@ -343,40 +385,43 @@ export function AdminCoupons() {
                 </div>
               </div>
 
-              {/* Crucial First-Order Restriction Checkbox */}
+              {/* First-Order Exclusive Guardrail */}
               <div className="first-order-toggle-box">
-                <label className="filter-checkbox-label">
+                <label className="admin-custom-checkbox">
                   <input
                     type="checkbox"
                     checked={form.isFirstOrderOnly}
                     onChange={(e) => setForm({ ...form, isFirstOrderOnly: e.target.checked })}
                   />
-                  <span>
-                    <strong>First-Order Only Restriction:</strong> Only customers placing their first ever order can use this coupon. (Validated against historical order records in MongoDB).
-                  </span>
+                  <div>
+                    <strong>First-Order Exclusive Condition</strong>
+                    <p className="font-xs muted" style={{ marginTop: '2px' }}>
+                      Restricts voucher redemption strictly to first-time customers. Re-orders with this coupon are automatically rejected by the server.
+                    </p>
+                  </div>
                 </label>
               </div>
 
-              <div className="terms-check-wrap">
-                <label className="filter-checkbox-label">
+              <div className="field-group checkbox-align">
+                <label className="admin-custom-checkbox">
                   <input
                     type="checkbox"
                     checked={form.isActive}
                     onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                   />
-                  <span>Coupon is Active and usable</span>
+                  <span>Voucher is Active and eligible for storefront checkout</span>
                 </label>
               </div>
 
-              <div className="modal-actions-row">
+              <div className="admin-modal-footer">
                 <button
                   type="button"
-                  className="btn sm light"
+                  className="admin-btn-secondary"
                   onClick={() => setModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn sm" disabled={submitting}>
+                <button type="submit" className="admin-btn-primary" disabled={submitting}>
                   {submitting ? 'Saving...' : editingCoupon ? 'Update Coupon' : 'Create Coupon'}
                 </button>
               </div>
