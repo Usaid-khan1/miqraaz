@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { GoogleSignInButton } from '../components/GoogleSignInButton.jsx'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -36,6 +37,12 @@ export function Login() {
         <p className="auth-subtitle">
           Enter your email and password to access your account.
         </p>
+
+        <GoogleSignInButton redirect={redirect} text="Continue with Google" />
+
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="field-group">

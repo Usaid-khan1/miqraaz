@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Card } from '../components/Card.jsx'
+import { PageLoader } from '../components/PageLoader.jsx'
 import { productsAPI, categoriesAPI } from '../services/api.js'
 
 export function Collection() {
@@ -108,6 +109,10 @@ export function Collection() {
     : slug
     ? slug.toUpperCase().replace(/-/g, ' ')
     : 'Collection'
+
+  if (loading && products.length === 0) {
+    return <PageLoader text="LOADING COLLECTION" />
+  }
 
   return (
     <div className="collection-page">

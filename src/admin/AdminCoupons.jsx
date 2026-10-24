@@ -293,7 +293,7 @@ export function AdminCoupons() {
                     style={{ textTransform: 'uppercase', fontFamily: 'monospace', letterSpacing: '0.06em' }}
                     value={form.code}
                     onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                    placeholder="e.g. FIRST10, KESHK500"
+                    placeholder="e.g. FIRST10"
                   />
                 </div>
                 <div className="field-group">

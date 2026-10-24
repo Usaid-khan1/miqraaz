@@ -64,7 +64,7 @@ export function CartDrawer() {
                   {i.img ? (
                     <img src={i.img} alt={i.name} />
                   ) : (
-                    <div className="ph small">KESHK</div>
+                    <div className="ph small">MIQRAAZ</div>
                   )}
                   <div className="grow">
                     <strong>

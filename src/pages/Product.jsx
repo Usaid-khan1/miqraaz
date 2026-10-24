@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { money } from '../data.js'
 import { useCart } from '../context/CartContext.jsx'
 import { productsAPI } from '../services/api.js'
+import { PageLoader } from '../components/PageLoader.jsx'
 import { Card } from '../components/Card.jsx'
 
 export function Product() {
@@ -49,16 +50,7 @@ export function Product() {
   }, [slug])
 
   if (loading) {
-    return (
-      <section className="section pdp pdp-loading">
-        <div className="skeleton-media" />
-        <div className="skeleton-info">
-          <div className="skeleton-line lg" />
-          <div className="skeleton-line sm" />
-          <div className="skeleton-line md" />
-        </div>
-      </section>
-    )
+    return <PageLoader text="LOADING PRODUCT" />
   }
 
   if (!product) {
@@ -113,7 +105,7 @@ export function Product() {
               )}
             </>
           ) : (
-            <div className="ph big">KESHK</div>
+            <div className="ph big">MIQRAAZ</div>
           )}
         </div>
 

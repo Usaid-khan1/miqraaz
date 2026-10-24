@@ -55,11 +55,11 @@ export function AdminLayout() {
           <Link to="/" target="_blank" title="Open Storefront" className="admin-brand-logo-link">
             <img src={LOGO_WHITE} alt="مِقْرَاض" height="26" />
           </Link>
-          <span className="admin-badge">Admin</span>
+          {/* <span className="admin-badge">Admin</span> */}
         </div>
 
         <nav className="admin-nav-menu">
-          <div className="admin-nav-group-title">Main Navigation</div>
+          <div className="admin-nav-group-title">Main</div>
 
           <NavLink
             to="/admin"

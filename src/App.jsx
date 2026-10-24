@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
 // Providers
 import { ToastProvider } from './context/ToastContext.jsx'
@@ -77,7 +77,8 @@ function AppContent() {
           <Route path="/account" element={<Account />} />
 
           {/* Editorial Pages */}
-          <Route path="/pages/about-keshk" element={<About />} />
+          <Route path="/pages/about-miqraaz" element={<About />} />
+          <Route path="/pages/about-keshk" element={<Navigate to="/pages/about-miqraaz" replace />} />
           <Route path="/pages/contact" element={<Contact />} />
           <Route path="/pages/:slug" element={<Policy />} />
           <Route path="/policies/:slug" element={<Policy />} />

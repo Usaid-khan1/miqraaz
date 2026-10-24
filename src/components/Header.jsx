@@ -11,6 +11,7 @@ export function Header({ onOpenSearch }) {
   const [scrolled, setScrolled] = useState(false)
   const [accountDropdown, setAccountDropdown] = useState(false)
   const [categories, setCategories] = useState([])
+  const [loadingCats, setLoadingCats] = useState(true)
 
   const { openCart, count } = useCart()
   const { user, isAuthenticated, isAdmin, logout } = useAuth()
@@ -22,12 +23,14 @@ export function Header({ onOpenSearch }) {
 
   // Load categories dynamically from backend
   useEffect(() => {
+    setLoadingCats(true)
     categoriesAPI
       .getAll()
       .then((res) => {
         if (res.categories) setCategories(res.categories)
       })
       .catch((err) => console.warn('Could not load categories:', err.message))
+      .finally(() => setLoadingCats(false))
   }, [])
 
   // Close menus on route change
@@ -104,21 +107,31 @@ export function Header({ onOpenSearch }) {
             ALL CHAPTER
           </a>
           <div className={`mega ${chap ? 'show' : ''}`}>
-            {categories.map((c) => (
-              <Link
-                key={c.slug}
-                to={`/collections/${c.slug}`}
-                className="mega-item"
-                onClick={() => setChap(false)}
-              >
-                {c.image ? (
-                  <img src={c.image} alt={c.name} loading="lazy" />
-                ) : (
-                  <div className="ph mega-ph">{c.name}</div>
-                )}
-                <span>{c.name}</span>
-              </Link>
-            ))}
+            {loadingCats ? (
+              <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '13px', width: '100%' }}>
+                Loading collections...
+              </div>
+            ) : categories.length > 0 ? (
+              categories.map((c) => (
+                <Link
+                  key={c.slug}
+                  to={`/collections/${c.slug}`}
+                  className="mega-item"
+                  onClick={() => setChap(false)}
+                >
+                  {c.image ? (
+                    <img src={c.image} alt={c.name} loading="lazy" />
+                  ) : (
+                    <div className="ph mega-ph">{c.name}</div>
+                  )}
+                  <span>{c.name}</span>
+                </Link>
+              ))
+            ) : (
+              <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '13px', width: '100%' }}>
+                No collections available yet.
+              </div>
+            )}
           </div>
         </div>
         <Link
@@ -230,7 +243,7 @@ export function Header({ onOpenSearch }) {
               ) : (
                 <>
                   <div className="dropdown-user-header">
-                    <span className="dropdown-user-name">Welcome to Keshk</span>
+                    <span className="dropdown-user-name">Welcome to Miqraaz</span>
                     <span className="dropdown-user-email">Sign in to your account</span>
                   </div>
                   <hr className="dropdown-sep" />

@@ -47,7 +47,7 @@ const productSchema = new mongoose.Schema(
     },
     collectionSlug: {
       type: String,
-      default: 'rang-xii',
+      default: '',
       trim: true,
       lowercase: true,
     },

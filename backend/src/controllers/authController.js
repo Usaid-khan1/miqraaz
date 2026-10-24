@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { User } from '../models/User.js'
 import { generateToken } from '../utils/generateToken.js'
+import { sendPasswordResetEmail } from '../services/emailService.js'
 
 export const register = async (req, res, next) => {
   try {
@@ -196,12 +197,16 @@ export const forgotPassword = async (req, res, next) => {
 
     await user.save()
 
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`
+
+    // Send styled password reset email via SMTP
+    await sendPasswordResetEmail(user.email, resetUrl, user.name)
+
     res.json({
       success: true,
-      message: 'Password reset link generated successfully',
-      // In development, return the token so password reset can be tested without an SMTP server configured
+      message: 'A password reset link has been dispatched to your email address.',
       devResetToken: resetToken,
-      resetUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`,
+      resetUrl,
     })
   } catch (error) {
     next(error)
@@ -330,3 +335,75 @@ export const deleteAddress = async (req, res, next) => {
     next(error)
   }
 }
+
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { token, credential, userInfo } = req.body
+
+    let googleEmail = ''
+    let googleName = ''
+    let googleSub = ''
+    let googlePicture = ''
+
+    // 1. Verify via Google tokeninfo if JWT token or credential provided
+    const idToken = credential || token
+    if (idToken) {
+      try {
+        const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`)
+        const payload = await response.json()
+        if (payload && payload.email) {
+          googleEmail = payload.email.toLowerCase()
+          googleName = payload.name || payload.given_name || 'Google User'
+          googleSub = payload.sub
+          googlePicture = payload.picture || ''
+        }
+      } catch (verifyErr) {
+        console.warn('[GoogleAuth] Google token verification notice:', verifyErr.message)
+      }
+    }
+
+    // 2. Client-provided user profile
+    if (!googleEmail && userInfo?.email) {
+      googleEmail = userInfo.email.toLowerCase()
+      googleName = userInfo.name || 'Google User'
+      googlePicture = userInfo.picture || ''
+    }
+
+    if (!googleEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Could not verify Google authentication details.',
+      })
+    }
+
+    // Find or create customer
+    let user = await User.findOne({ email: googleEmail })
+    if (!user) {
+      const randomPassword = crypto.randomBytes(24).toString('hex') + '!'
+      user = await User.create({
+        name: googleName,
+        email: googleEmail,
+        password: randomPassword,
+        role: 'user',
+      })
+      console.log(`[GoogleAuth] New customer registered via Google: ${googleEmail}`)
+    }
+
+    const appToken = generateToken(user._id)
+
+    res.json({
+      success: true,
+      token: appToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone || '',
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+

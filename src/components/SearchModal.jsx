@@ -150,7 +150,7 @@ export function SearchModal({ open, onClose }) {
                       {p.images && p.images[0] ? (
                         <img src={p.images[0]} alt={p.name} loading="lazy" />
                       ) : (
-                        <div className="ph small">KESHK</div>
+                        <div className="ph small">MIQRAAZ</div>
                       )}
                     </div>
                     <div className="search-card-info">

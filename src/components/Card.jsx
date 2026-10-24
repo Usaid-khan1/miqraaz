@@ -25,7 +25,7 @@ export function Card({ p }) {
           {img ? (
             <img src={img} alt={p.name} loading="lazy" />
           ) : (
-            <div className="ph">KESHK</div>
+            <div className="ph">Miqraaz</div>
           )}
           {isSoldOut && <span className="tag">Sold out</span>}
           {!isSoldOut && (

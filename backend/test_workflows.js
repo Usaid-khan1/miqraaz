@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 const BASE_URL = 'http://localhost:5000/api/v1'
 
 async function runTests() {
@@ -13,10 +16,12 @@ async function runTests() {
 
   // 1. Admin Login
   console.log('Test 1: Admin Login...')
+  const adminEmail = process.env.ADMIN_EMAIL
+  const adminPassword = process.env.ADMIN_PASSWORD
   const adminLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@miqraaz.com', password: 'AdminPassword123!' }),
+    body: JSON.stringify({ email: adminEmail, password: adminPassword }),
   }).then((r) => r.json())
 
   if (!adminLoginRes.success || !adminLoginRes.token) {

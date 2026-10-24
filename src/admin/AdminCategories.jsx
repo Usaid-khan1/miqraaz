@@ -235,7 +235,7 @@ export function AdminCategories() {
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. RANG XII, RAABTA XI"
+                  placeholder="e.g. Summer Collection, Festive Drop"
                 />
               </div>
 
@@ -245,7 +245,7 @@ export function AdminCategories() {
                   type="text"
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                  placeholder="e.g. rang-xii"
+                  placeholder="e.g. summer-collection"
                 />
               </div>
 

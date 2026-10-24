@@ -104,7 +104,7 @@ export function CartPage() {
                       {item.img ? (
                         <img src={item.img} alt={item.name} className="cart-row-thumb" />
                       ) : (
-                        <div className="ph small cart-row-thumb">KESHK</div>
+                        <div className="ph small cart-row-thumb">MIQRAAZ</div>
                       )}
                       <div>
                         <Link to={`/products/${item.slug}`} className="cart-row-title">

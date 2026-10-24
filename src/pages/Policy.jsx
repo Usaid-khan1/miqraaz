@@ -5,7 +5,7 @@ const POLICIES = {
     title: 'Privacy Policy',
     content: (
       <>
-        <p>At Keshk, we respect and prioritize your privacy. This policy explains how we collect, store, and protect your personal information.</p>
+        <p>At Miqraaz, we respect and prioritize your privacy. This policy explains how we collect, store, and protect your personal information.</p>
         <h3>Information We Collect</h3>
         <p>When you place an order, create an account, or browse our website, we collect your name, email address, shipping address, contact phone number, and order history.</p>
         <h3>How We Use Your Data</h3>
@@ -19,7 +19,7 @@ const POLICIES = {
     title: 'Terms of Service',
     content: (
       <>
-        <p>Welcome to Keshk. By visiting our site and purchasing our handcrafted products, you engage in our service and agree to be bound by the following terms.</p>
+        <p>Welcome to Miqraaz. By visiting our site and purchasing our handcrafted products, you engage in our service and agree to be bound by the following terms.</p>
         <h3>Pricing &amp; Availability</h3>
         <p>All prices are listed in Pakistani Rupees (PKR). Products and pricing are subject to change without notice. We reserve the right to limit the sales of our products to any person or geographic region.</p>
         <h3>Accuracy of Information</h3>

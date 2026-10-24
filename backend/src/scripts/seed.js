@@ -8,7 +8,7 @@ import { Coupon } from '../models/Coupon.js'
 import { Setting } from '../models/Setting.js'
 import { Order } from '../models/Order.js'
 
-const CDN = 'https://keshkofficial.com/cdn/shop'
+const CDN = 'https://miqraaz.com/cdn/shop'
 
 const seedCategories = [
   { slug: 'rang-xii', name: 'RANG XII', img: `${CDN}/collections/WhatsApp_Image_2026-07-08_at_11.11.44_AM_17c79acb-f5a2-41f9-b16f-59a089d7aee6.jpg?v=1783516093&width=800`, order: 1 },
@@ -167,10 +167,10 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
     await Setting.findOneAndUpdate(
       {},
       {
-        storeName: 'Keshk',
+        storeName: 'Miqraaz',
         brandNameUrdu: 'مِقْرَاض',
-        tagline: 'Unisex fashion with traditional and street fusion. EST. in Lyari',
-        contactEmail: 'support@keshk.com',
+        tagline: 'A knock before an arrival.',
+        contactEmail: 'miqraaz.official@gmail.com',
         contactPhone: '+92 300 1234567',
         currencySymbol: 'Rs.',
         currencyCode: 'PKR',
@@ -195,7 +195,7 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
         role: 'admin',
         phone: '+92 300 0000000',
       })
-      console.log(`[Seed] Created initial Admin: ${ENV.ADMIN_EMAIL} (Password: ${ENV.ADMIN_PASSWORD})`)
+      console.log(`[Seed] Created initial Admin: ${ENV.ADMIN_EMAIL}`)
     } else {
       console.log(`[Seed] Admin already exists: ${ENV.ADMIN_EMAIL}`)
     }
@@ -204,10 +204,11 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
     const testCustomerEmail = 'customer@example.com'
     let customer = await User.findOne({ email: testCustomerEmail })
     if (!customer) {
+      const tempCustomerPass = process.env.TEST_CUSTOMER_PASSWORD || ('Pass_' + Math.random().toString(36).slice(-8) + '!')
       customer = await User.create({
         name: 'Usaid Khan',
         email: testCustomerEmail,
-        password: 'CustomerPassword123!',
+        password: tempCustomerPass,
         role: 'user',
         phone: '+92 321 9876543',
         addresses: [
@@ -223,7 +224,7 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
           },
         ],
       })
-      console.log(`[Seed] Created test customer: ${testCustomerEmail} (Password: CustomerPassword123!)`)
+      console.log(`[Seed] Created test customer: ${testCustomerEmail}`)
     }
 
     // 4. Categories
@@ -280,7 +281,7 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
         isActive: true,
       },
       {
-        code: 'KESHK500',
+        code: 'MIQRAAZ500',
         description: 'Flat Rs. 500 off on orders over Rs. 5,000',
         discountType: 'fixed',
         discountValue: 500,

@@ -13,7 +13,7 @@ import { useToast } from '../context/ToastContext.jsx'
 
 export function AdminSettings() {
   const [settings, setSettings] = useState({
-    storeName: 'Keshk',
+    storeName: 'Miqraaz',
     brandNameUrdu: 'مِقْرَاض',
     tagline: '',
     contactEmail: '',
@@ -110,7 +110,7 @@ export function AdminSettings() {
                 type="text"
                 value={settings.tagline}
                 onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
-                placeholder="Unisex fashion with traditional and street fusion. EST. in Lyari"
+                placeholder="A knock before an arrival."
               />
             </div>
 

@@ -1,4 +1,4 @@
-# Miqraaz / Keshk — Full-Stack E-Commerce Platform
+# Miqraaz — Full-Stack E-Commerce Platform
 
 A production-oriented, full-stack e-commerce web application built with **React, Node.js, Express, and MongoDB Atlas / Mongoose**.
 

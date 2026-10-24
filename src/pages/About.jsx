@@ -1,21 +1,21 @@
 export function About() {
   return (
     <section className="section narrow">
-      <h1 className="page-title">About Keshk</h1>
+      <h1 className="page-title">About Miqraaz</h1>
       <p>
-        <strong>Keshk</strong>, a Balochi word meaning direction towards your destiny, was founded in Lyari in 2023 — a place where style has always existed in its most natural and unfiltered form.
+        <strong>Miqraaz</strong> was founded with a vision to redefine contemporary fashion — where craftsmanship, modern silhouette, and heritage fusion exist in their most authentic and unfiltered form.
       </p>
       <p>
-        Growing up around that environment, we witnessed an undeniable love for fashion. It wasn’t defined by trends or validation, but by individuality, confidence, and self-expression. People carried style in a way that felt instinctive — something lived, not performed. Yet, despite all of this, there was no true representation of us.
+        Growing up around our culture, we witnessed an undeniable passion for design and individuality. It was never defined by transient trends, but by confidence and self-expression. People carried style in a way that felt instinctive — something lived, not performed.
       </p>
       <p>
-        What was missing was something that felt real, something that felt ours, something that people could see themselves in and belong to. <strong>Keshk</strong> was created as a response to that.
+        What was missing was something that felt real, premium, and uniquely tailored — pieces that people could see themselves in and belong to. <strong>Miqraaz</strong> was created as a response to that.
       </p>
       <p>
-        It is an attempt to translate what we have always seen and experienced into something tangible — pieces that carry a sense of identity, place, and direction. Rather than imposing a narrative, <strong>Keshk</strong> builds from what already exists, giving it form and space.
+        It is an attempt to translate vision into tangible expression — apparel that carries a sense of identity, poise, and direction. Rather than imposing a generic narrative, <strong>Miqraaz</strong> crafts timeless silhouettes designed to endure.
       </p>
       <p>
-        At its core, <strong>Keshk</strong> is about moving with intention — staying rooted in where you come from, while finding your own direction forward.
+        At its core, <strong>Miqraaz</strong> is about moving with intention — staying rooted in authenticity while forging a bold direction forward.
       </p>
     </section>
   )

@@ -1,16 +1,32 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { LOGO_BLACK } from '../data.js'
+import { settingsAPI } from '../services/api.js'
 
 export function Footer() {
+  const [settings, setSettings] = useState(null)
+
+  useEffect(() => {
+    settingsAPI
+      .get()
+      .then((res) => {
+        if (res?.settings) setSettings(res.settings)
+      })
+      .catch(() => {})
+  }, [])
+
+  const storeName = settings?.storeName || 'MIQRAAZ'
+  const tagline = settings?.tagline || ''
+
   return (
     <footer className="footer">
       <div className="footer-top">
         <div>
           <img src={LOGO_BLACK} alt="مِقْرَاض" className="flogo" />
-          <p>Unisex fashion with traditional and street fusion.</p>
-          <p>EST. in Lyari</p>
+          {tagline && <p>{tagline}</p>}
+          {settings?.address && <p>{settings.address}</p>}
           <a
-            href="https://www.instagram.com/keshk.official/"
+            href="https://www.instagram.com/miqraaz.official/"
             target="_blank"
             rel="noreferrer"
             className="instagram-link"
@@ -20,7 +36,7 @@ export function Footer() {
         </div>
         <div>
           <h4>Company</h4>
-          <Link to="/pages/about-keshk">About Us</Link>
+          <Link to="/pages/about-miqraaz">About Us</Link>
           <Link to="/pages/contact">Contact Us</Link>
         </div>
         <div>
@@ -32,7 +48,7 @@ export function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2026 <Link to="/">Keshk / Miqraaz</Link>. All Rights Reserved.</span>
+        <span>© 2026 <Link to="/">{storeName}</Link>. All Rights Reserved.</span>
       </div>
     </footer>
   )

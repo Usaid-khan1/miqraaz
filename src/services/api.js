@@ -41,6 +41,7 @@ const request = async (endpoint, options = {}) => {
 export const authAPI = {
   login: (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  googleLogin: (data) => request('/auth/google', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => request('/auth/me'),
   updateProfile: (data) => request('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
   updatePassword: (data) => request('/auth/password', { method: 'PUT', body: JSON.stringify(data) }),

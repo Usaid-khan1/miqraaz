@@ -6,9 +6,14 @@ const bootstrapAdmin = async () => {
   try {
     await connectDB()
 
-    const email = (process.argv[2] || ENV.ADMIN_EMAIL).toLowerCase()
+    const email = (process.argv[2] || ENV.ADMIN_EMAIL || '').toLowerCase()
     const password = process.argv[3] || ENV.ADMIN_PASSWORD
-    const name = process.argv[4] || ENV.ADMIN_NAME
+    const name = process.argv[4] || ENV.ADMIN_NAME || 'Admin'
+
+    if (!email || !password) {
+      console.error('[Admin Bootstrap] Missing credentials: ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env')
+      process.exit(1)
+    }
 
     let user = await User.findOne({ email })
     if (user) {

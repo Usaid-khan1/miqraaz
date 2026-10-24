@@ -2,6 +2,7 @@ import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
 import { InventoryLog } from '../models/InventoryLog.js'
 import { createOrderService } from '../services/orderService.js'
+import { sendOrderConfirmationEmail } from '../services/emailService.js'
 
 export const createOrder = async (req, res, next) => {
   try {
@@ -14,6 +15,13 @@ export const createOrder = async (req, res, next) => {
       paymentMethod,
       couponCode,
     })
+
+    // Dispatch Order Confirmation Email via Gmail SMTP
+    const customerEmail = req.user.email
+    const customerName = req.user.name || shippingAddress?.fullName || 'Customer'
+    sendOrderConfirmationEmail(order, customerEmail, customerName).catch((mailErr) =>
+      console.warn('[OrderEmail] Confirmation email warning:', mailErr.message)
+    )
 
     res.status(201).json({
       success: true,

@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { ordersAPI, couponsAPI } from '../services/api.js'
+import { PageLoader } from '../components/PageLoader.jsx'
 import { money } from '../data.js'
 
 export function Checkout() {
@@ -106,8 +107,13 @@ export function Checkout() {
     }
   }
 
+  // Guard: if checking auth session on reload, show luxury preloader
+  if (authLoading) {
+    return <PageLoader text="VERIFYING SESSION" />
+  }
+
   // Guard: if user is not authenticated, redirect to login with redirect param
-  if (!authLoading && !isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login?redirect=/checkout" replace />
   }
 
@@ -315,7 +321,7 @@ export function Checkout() {
                 />
                 <div className="payment-card-content">
                   <strong>Direct Bank Transfer</strong>
-                  <p className="muted">Make payment directly to our Meezan Bank account. Account title: Keshk.</p>
+                  <p className="muted">Make payment directly to our Meezan Bank account. Account title: Miqraaz.</p>
                 </div>
               </label>
             </div>
@@ -360,7 +366,7 @@ export function Checkout() {
                     {i.img ? (
                       <img src={i.img} alt={i.name} />
                     ) : (
-                      <div className="ph small">KESHK</div>
+                      <div className="ph small">MIQRAAZ</div>
                     )}
                     <span className="checkout-item-qty-badge">{i.qty}</span>
                   </div>

@@ -39,7 +39,7 @@ export function AdminProducts() {
     salePrice: '',
     sku: '',
     category: '',
-    collectionSlug: 'rang-xii',
+    collectionSlug: '',
     imagesText: '',
     sizes: [
       { size: 'S', stock: 10 },
@@ -93,7 +93,7 @@ export function AdminProducts() {
       salePrice: p.salePrice ?? '',
       sku: p.sku || '',
       category: p.category?._id || p.category || '',
-      collectionSlug: p.collectionSlug || 'rang-xii',
+      collectionSlug: p.collectionSlug || '',
       imagesText: Array.isArray(p.images) ? p.images.join('\n') : '',
       sizes: p.sizes?.length ? p.sizes : initialForm.sizes,
       lowStockThreshold: p.lowStockThreshold ?? 5,
@@ -374,7 +374,7 @@ export function AdminProducts() {
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="e.g. Sabz Daftar (سبز دفتر)"
+                    placeholder="e.g. Classic Embroidered Kurta"
                   />
                 </div>
                 <div className="field-group">
@@ -436,7 +436,15 @@ export function AdminProducts() {
                   <label>Category Reference</label>
                   <select
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    onChange={(e) => {
+                      const selectedCatId = e.target.value
+                      const matched = categories.find((c) => c._id === selectedCatId)
+                      setForm({
+                        ...form,
+                        category: selectedCatId,
+                        collectionSlug: matched ? matched.slug : form.collectionSlug,
+                      })
+                    }}
                   >
                     <option value="">None / Standalone</option>
                     {categories.map((c) => (
@@ -452,7 +460,7 @@ export function AdminProducts() {
                     type="text"
                     value={form.collectionSlug}
                     onChange={(e) => setForm({ ...form, collectionSlug: e.target.value })}
-                    placeholder="e.g. rang-xii, raabta-xi..."
+                    placeholder="e.g. summer-collection, festive-drop..."
                   />
                 </div>
               </div>
@@ -477,7 +485,7 @@ export function AdminProducts() {
                   rows={3}
                   value={form.imagesText}
                   onChange={(e) => setForm({ ...form, imagesText: e.target.value })}
-                  placeholder="https://keshkofficial.com/...&#10;/uploads/file-123.jpg"
+                  placeholder="https://miqraazofficial.com/...&#10;/uploads/file-123.jpg"
                 />
               </div>
 

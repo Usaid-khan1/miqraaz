@@ -85,6 +85,21 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const loginWithGoogle = async (googlePayload) => {
+    try {
+      const res = await authAPI.googleLogin(googlePayload)
+      localStorage.setItem('miqraaz_token', res.token)
+      localStorage.setItem('miqraaz_user', JSON.stringify(res.user))
+      setToken(res.token)
+      setUser(res.user)
+      showToast(`Welcome, ${res.user.name}!`, 'success')
+      return res.user
+    } catch (err) {
+      showToast(err.message || 'Google sign-in failed', 'error')
+      throw err
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem('miqraaz_token')
     localStorage.removeItem('miqraaz_user')
@@ -164,6 +179,7 @@ export function AuthProvider({ children }) {
     isAdmin: Boolean(user && user.role === 'admin'),
     login,
     register,
+    loginWithGoogle,
     logout,
     updateProfile,
     changePassword,

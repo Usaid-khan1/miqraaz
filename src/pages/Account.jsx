@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { ordersAPI } from '../services/api.js'
+import { PageLoader } from '../components/PageLoader.jsx'
 import { money } from '../data.js'
 import {
   LayoutDashboard,
@@ -93,7 +94,11 @@ export function Account() {
     }
   }, [isAuthenticated])
 
-  if (!authLoading && !isAuthenticated) {
+  if (authLoading) {
+    return <PageLoader text="LOADING ACCOUNT" />
+  }
+
+  if (!isAuthenticated) {
     navigate('/login')
     return null
   }
@@ -659,7 +664,7 @@ export function Account() {
                       {item.image ? (
                         <img src={item.image} alt={item.name} className="order-snapshot-thumb" />
                       ) : (
-                        <div className="ph small">KESHK</div>
+                        <div className="ph small">MIQRAAZ</div>
                       )}
                       <div className="order-snapshot-info">
                         <strong>{item.name}</strong>

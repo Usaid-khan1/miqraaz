@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { HERO_BANNER_IMG } from '../data.js'
 import { Card } from '../components/Card.jsx'
+import { PageLoader } from '../components/PageLoader.jsx'
 import { productsAPI, categoriesAPI, settingsAPI } from '../services/api.js'
 
 function ProductSlider({ items = [] }) {
@@ -44,6 +44,7 @@ function ProductSlider({ items = [] }) {
 }
 
 export function Home() {
+  const [featuredChapter, setFeaturedChapter] = useState(null)
   const [sliderProducts, setSliderProducts] = useState([])
   const [exploreProducts, setExploreProducts] = useState([])
   const [chapters, setChapters] = useState([])
@@ -55,17 +56,33 @@ export function Home() {
 
     const loadHomeData = async () => {
       try {
-        const [sliderRes, exploreRes, catsRes, settingsRes] = await Promise.all([
-          productsAPI.getAll({ collection: 'rang-xii', limit: 8 }),
-          productsAPI.getAll({ limit: 4 }),
-          categoriesAPI.getAll(),
+        const [catsRes, settingsRes, exploreRes] = await Promise.all([
+          categoriesAPI.getAll().catch(() => ({ categories: [] })),
           settingsAPI.get().catch(() => null),
+          productsAPI.getAll({ limit: 8 }).catch(() => ({ products: [] })),
         ])
 
+        const allCats = catsRes?.categories || []
+        const heroCat = allCats.length > 0 ? allCats[0] : null
+
+        let sliderItems = []
+        if (heroCat?.slug) {
+          const sliderRes = await productsAPI
+            .getAll({ collection: heroCat.slug, limit: 8 })
+            .catch(() => ({ products: [] }))
+          sliderItems = sliderRes?.products || []
+        }
+
+        if (sliderItems.length === 0) {
+          const featuredRes = await productsAPI.getFeatured().catch(() => ({ products: [] }))
+          sliderItems = featuredRes?.products || []
+        }
+
         if (isMounted) {
-          setSliderProducts(sliderRes.products || [])
-          setExploreProducts(exploreRes.products || [])
-          setChapters((catsRes.categories || []).filter((c) => c.slug !== 'rang-xii'))
+          setFeaturedChapter(heroCat)
+          setSliderProducts(sliderItems)
+          setExploreProducts(exploreRes?.products || [])
+          setChapters(heroCat ? allCats.filter((c) => c.slug !== heroCat.slug) : allCats)
           if (settingsRes?.settings) setSettings(settingsRes.settings)
         }
       } catch (err) {
@@ -81,62 +98,73 @@ export function Home() {
     }
   }, [])
 
+  if (loading) {
+    return <PageLoader text="LOADING MIQRAAZ" />
+  }
+
+  const heroBg = featuredChapter?.image
+    ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${featuredChapter.image})`
+    : 'linear-gradient(135deg, #0a0a0a 0%, #161616 50%, #0d0d0d 100%)'
+
+  const heroKicker = featuredChapter
+    ? 'FEATURED COLLECTION'
+    : settings?.brandNameUrdu || 'مِقْرَاض'
+
+  const heroTitle = featuredChapter
+    ? featuredChapter.name
+    : settings?.storeName || 'MIQRAAZ'
+
+  const heroDesc = featuredChapter?.description || settings?.tagline || ''
+
+  const heroLink = featuredChapter
+    ? `/collections/${featuredChapter.slug}`
+    : '/collections/all'
+
   return (
     <>
-      {/* 1. Hero Section */}
+      {/* 1. Dynamic Hero Section */}
       <section
         className="hero"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url(${HERO_BANNER_IMG})`,
+          backgroundImage: heroBg,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
         <div className="hero-center-box">
-          <div className="hero-kicker">NEW CHAPTER</div>
-          <h1 className="hero-title">RANG XII</h1>
-          <p className="hero-desc">
-            {settings?.tagline ||
-              'RANG is about wearing something that feels personal, where every color holds meaning and every detail has a story worth carrying.'}
-          </p>
-          <Link className="hero-btn" to="/collections/rang-xii">
+          <div className="hero-kicker">{heroKicker}</div>
+          <h1 className="hero-title">{heroTitle}</h1>
+          {heroDesc && <p className="hero-desc">{heroDesc}</p>}
+          <Link className="hero-btn" to={heroLink}>
             SHOP NOW
           </Link>
         </div>
       </section>
 
-      {/* 2. Marquee Ticker */}
-      <div className="marquee-bar">
-        <div className="marquee-track">
-          <div className="marquee-content">
-            <span>A LANGUAGE BEYOND FABRIC</span>
-            <span>SOME STORIES ARE WRITTEN IN INK.</span>
-            <span>OTHERS ARE WORN.</span>
-            <span>A LANGUAGE BEYOND FABRIC</span>
-            <span>SOME STORIES ARE WRITTEN IN INK.</span>
-            <span>OTHERS ARE WORN.</span>
-          </div>
-          <div className="marquee-content" aria-hidden="true">
-            <span>A LANGUAGE BEYOND FABRIC</span>
-            <span>SOME STORIES ARE WRITTEN IN INK.</span>
-            <span>OTHERS ARE WORN.</span>
-            <span>A LANGUAGE BEYOND FABRIC</span>
-            <span>SOME STORIES ARE WRITTEN IN INK.</span>
-            <span>OTHERS ARE WORN.</span>
+      {/* 2. Dynamic Marquee Bar */}
+      {settings?.announcementText && (
+        <div className="marquee-bar">
+          <div className="marquee-track">
+            <div className="marquee-content">
+              <span>{settings.announcementText}</span>
+              <span>{settings.announcementText}</span>
+              <span>{settings.announcementText}</span>
+            </div>
+            <div className="marquee-content" aria-hidden="true">
+              <span>{settings.announcementText}</span>
+              <span>{settings.announcementText}</span>
+              <span>{settings.announcementText}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. Horizontal Product Slider for RANG XII */}
-      <section className="section product-slider-section">
-        {loading ? (
-          <div className="loading-grid">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="skeleton-card" />
-            ))}
-          </div>
-        ) : (
-          sliderProducts.length > 0 && <ProductSlider items={sliderProducts} />
-        )}
-      </section>
+      {/* 3. Dynamic Horizontal Product Slider */}
+      {sliderProducts.length > 0 && (
+        <section className="section product-slider-section">
+          <ProductSlider items={sliderProducts} />
+        </section>
+      )}
 
       {/* 4. Explore All Section */}
       <section className="section">
@@ -146,54 +174,48 @@ export function Home() {
             View all →
           </Link>
         </div>
-        {loading ? (
-          <div className="grid">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="skeleton-card" />
-            ))}
-          </div>
-        ) : exploreProducts.length > 0 ? (
+        {exploreProducts.length > 0 ? (
           <div className="grid">
             {exploreProducts.map((p) => (
-              <Card key={p.slug} p={p} />
+              <Card key={p._id || p.slug} p={p} />
             ))}
           </div>
         ) : (
           <div className="empty-state-box">
-            <p>Catalog is currently being updated. Check back shortly!</p>
+            <p>Catalog is currently empty.</p>
           </div>
         )}
       </section>
 
       {/* 5. Chapters of Expression */}
-      <section className="section chapters-section">
-        <div className="section-head">
-          <h2>Chapters of Expression</h2>
-          <p>Each collection is a chapter.</p>
-          <p>Each chapter explores a different idea.</p>
-        </div>
-        <div className="chapter-grid-2col">
-          {chapters.map((c) => (
-            <Link
-              key={c.slug}
-              to={`/collections/${c.slug}`}
-              className="chapter-card-large"
-            >
-              <div className="chapter-media">
-                {c.image ? (
-                  <img src={c.image} alt={c.name} loading="lazy" />
-                ) : (
-                  <div className="ph chapter-ph">{c.name}</div>
-                )}
-              </div>
-              <div className="chapter-overlay">
-                <h3 className="chapter-card-title">{c.name}</h3>
-                <span className="chapter-card-shop">SHOP NOW</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {chapters.length > 0 && (
+        <section className="section chapters-section">
+          <div className="section-head">
+            <h2>Collections</h2>
+          </div>
+          <div className="chapter-grid-2col">
+            {chapters.map((c) => (
+              <Link
+                key={c._id || c.slug}
+                to={`/collections/${c.slug}`}
+                className="chapter-card-large"
+              >
+                <div className="chapter-media">
+                  {c.image ? (
+                    <img src={c.image} alt={c.name} loading="lazy" />
+                  ) : (
+                    <div className="ph chapter-ph">{c.name}</div>
+                  )}
+                </div>
+                <div className="chapter-overlay">
+                  <h3 className="chapter-card-title">{c.name}</h3>
+                  <span className="chapter-card-shop">SHOP NOW</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   )
 }

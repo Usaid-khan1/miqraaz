@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { GoogleSignInButton } from '../components/GoogleSignInButton.jsx'
 
 export function Register() {
   const [formData, setFormData] = useState({
@@ -54,6 +55,12 @@ export function Register() {
         <p className="auth-subtitle">
           Sign up to track your orders, save shipping addresses, and unlock exclusive offers.
         </p>
+
+        <GoogleSignInButton redirect={redirect} text="Sign up with Google" />
+
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="field-group">
