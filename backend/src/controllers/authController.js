@@ -338,14 +338,14 @@ export const deleteAddress = async (req, res, next) => {
 
 export const googleLogin = async (req, res, next) => {
   try {
-    const { token, credential, userInfo } = req.body
+    const { token, credential, userInfo, accessToken } = req.body
 
     let googleEmail = ''
     let googleName = ''
     let googleSub = ''
     let googlePicture = ''
 
-    // 1. Verify via Google tokeninfo if JWT token or credential provided
+    // 1. Verify via Google tokeninfo if ID token or credential provided
     const idToken = credential || token
     if (idToken) {
       try {
@@ -362,7 +362,25 @@ export const googleLogin = async (req, res, next) => {
       }
     }
 
-    // 2. Client-provided user profile
+    // 2. Verify via Google userinfo if OAuth2 access token provided
+    if (!googleEmail && accessToken) {
+      try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        const payload = await response.json()
+        if (payload && payload.email) {
+          googleEmail = payload.email.toLowerCase()
+          googleName = payload.name || payload.given_name || 'Google User'
+          googleSub = payload.sub
+          googlePicture = payload.picture || ''
+        }
+      } catch (tokenErr) {
+        console.warn('[GoogleAuth] Google userinfo notice:', tokenErr.message)
+      }
+    }
+
+    // 3. Client-provided user profile
     if (!googleEmail && userInfo?.email) {
       googleEmail = userInfo.email.toLowerCase()
       googleName = userInfo.name || 'Google User'
@@ -389,7 +407,7 @@ export const googleLogin = async (req, res, next) => {
       console.log(`[GoogleAuth] New customer registered via Google: ${googleEmail}`)
     }
 
-    const appToken = generateToken(user._id)
+    const appToken = generateToken(user)
 
     res.json({
       success: true,
