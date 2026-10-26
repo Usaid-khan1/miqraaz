@@ -25,6 +25,8 @@ import contactRoutes from './routes/contactRoutes.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
+app.set('trust proxy', 1)
+
 // Security headers
 app.use(
   helmet({
