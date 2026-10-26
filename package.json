@@ -9,7 +9,7 @@
     "dev:frontend": "vite",
     "seed": "npm --prefix backend run seed",
     "bootstrap-admin": "npm --prefix backend run bootstrap-admin",
-    "build": "vite build",
+    "build": "node ./node_modules/vite/bin/vite.js build",
     "preview": "vite preview"
   },
   "dependencies": {
