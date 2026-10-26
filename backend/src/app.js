@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import mongoose from 'mongoose'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { ENV } from './config/env.js'
@@ -25,6 +26,7 @@ import contactRoutes from './routes/contactRoutes.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
+// Trust Vercel reverse proxy
 app.set('trust proxy', 1)
 
 // Security headers
@@ -49,6 +51,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true)
       }
+
       return callback(null, true) // Allow during development
     },
     credentials: true,
@@ -75,9 +78,21 @@ app.use('/uploads', express.static(uploadDir))
 
 // API Health Check
 app.get('/api/v1/health', (req, res) => {
+  const mongoStates = [
+    'disconnected',
+    'connected',
+    'connecting',
+    'disconnecting',
+  ]
+
   res.json({
     status: 'ok',
     environment: ENV.NODE_ENV,
+    mongodb: {
+      readyState: mongoose.connection.readyState,
+      state:
+        mongoStates[mongoose.connection.readyState] || 'unknown',
+    },
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   })
