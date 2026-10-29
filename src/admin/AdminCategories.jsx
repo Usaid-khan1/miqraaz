@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { categoriesAPI, uploadAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
+import { formatImageUrl } from '../data.js'
 
 export function AdminCategories() {
   const [categories, setCategories] = useState([])
@@ -153,8 +154,8 @@ export function AdminCategories() {
                   <tr key={c._id}>
                     <td>
                       <div className="admin-prod-cell">
-                        {c.image ? (
-                          <img src={c.image} alt={c.name} className="admin-thumb" />
+                        {formatImageUrl(c.image) ? (
+                          <img src={formatImageUrl(c.image)} alt={c.name} className="admin-thumb" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                         ) : (
                           <div className="admin-thumb-empty">
                             <FolderTree size={18} strokeWidth={1.5} />

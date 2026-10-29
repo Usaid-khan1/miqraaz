@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import { useCart } from '../context/CartContext.jsx'
 import { productsAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
@@ -29,7 +29,6 @@ export function Product() {
         if (isMounted) {
           setProduct(res.product)
           setRelated(res.relatedProducts || [])
-          // Set initial size to first available
           if (res.product?.sizes?.length) {
             const firstInStock = res.product.sizes.find((s) => s.stock > 0)
             setSelectedSize(firstInStock ? firstInStock.size : res.product.sizes[0].size)
@@ -65,7 +64,9 @@ export function Product() {
     )
   }
 
-  const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : []
+  const images = Array.isArray(product.images)
+    ? product.images.map(formatImageUrl).filter(Boolean)
+    : []
   const currentSizeObj = product.sizes?.find((s) => s.size === selectedSize)
   const currentStock = currentSizeObj ? currentSizeObj.stock : (product.totalStock ?? 0)
   const isSoldOut = (product.totalStock ?? 0) <= 0 || currentStock <= 0
@@ -111,9 +112,12 @@ export function Product() {
 
         {/* Right Info */}
         <div className="pdp-info">
-          <div className="pdp-category-badge">
-            {product.category?.name || product.collectionSlug?.toUpperCase()}
-          </div>
+          {product.category?.name || product.collectionSlug ? (
+            <div className="pdp-category-badge">
+              {product.category?.name || product.collectionSlug}
+            </div>
+          ) : null}
+
           <h1>{product.name}</h1>
 
           <div className="pdp-price-row">
@@ -135,43 +139,52 @@ export function Product() {
           </p>
 
           {/* Size Selector */}
-          <div className="pdp-section-wrap">
-            <div className="size-label-row">
-              <span className="label">Size</span>
-              <span className="stock-hint">
-                {currentStock > 0
-                  ? currentStock <= 5
-                    ? `Only ${currentStock} left in stock`
-                    : 'In stock'
-                  : 'Sold out'}
-              </span>
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="pdp-section-wrap">
+              <div className="size-label-row">
+                <span className="label">SIZE</span>
+                <span className="stock-hint">
+                  {currentStock > 0
+                    ? currentStock <= 5
+                      ? `Only ${currentStock} left in stock`
+                      : 'In stock'
+                    : 'Sold out'}
+                </span>
+              </div>
+              <div className="sizes">
+                {product.sizes.map((s) => {
+                  const disabled = s.stock <= 0
+                  return (
+                    <button
+                      key={s.size}
+                      type="button"
+                      disabled={disabled}
+                      className={`${s.size === selectedSize ? 'on' : ''} ${disabled ? 'disabled-size' : ''}`}
+                      onClick={() => {
+                        setSelectedSize(s.size)
+                        if (qty > s.stock && s.stock > 0) {
+                          setQty(s.stock)
+                        }
+                      }}
+                    >
+                      {s.size}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-            <div className="sizes">
-              {product.sizes?.map((s) => {
-                const disabled = s.stock <= 0
-                return (
-                  <button
-                    key={s.size}
-                    type="button"
-                    className={`${s.size === selectedSize ? 'on' : ''} ${disabled ? 'disabled-size' : ''}`}
-                    onClick={() => setSelectedSize(s.size)}
-                  >
-                    {s.size}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          )}
 
           {/* Quantity Selector */}
           <div className="pdp-section-wrap">
-            <span className="label">Quantity</span>
+            <span className="label">QUANTITY</span>
             <div className="pdp-qty-row">
               <div className="pdp-qty-stepper">
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   disabled={qty <= 1 || isSoldOut}
+                  aria-label="Decrease quantity"
                 >
                   −
                 </button>
@@ -180,6 +193,7 @@ export function Product() {
                   type="button"
                   onClick={() => setQty((q) => Math.min(currentStock, q + 1))}
                   disabled={qty >= currentStock || isSoldOut}
+                  aria-label="Increase quantity"
                 >
                   +
                 </button>
@@ -198,11 +212,17 @@ export function Product() {
           </button>
 
           {/* Product Details & Specs */}
-          <div className="pdp-details-block">
-            <h4>Description</h4>
-            <p className="desc">{product.description}</p>
-            {product.sku && <div className="sku-info">SKU: {product.sku}</div>}
-          </div>
+          {(product.description || product.sku) && (
+            <div className="pdp-details-block">
+              {product.description && (
+                <>
+                  <h4>Description</h4>
+                  <p className="desc">{product.description}</p>
+                </>
+              )}
+              {product.sku && <div className="sku-info">SKU: {product.sku}</div>}
+            </div>
+          )}
         </div>
       </section>
 
@@ -211,9 +231,11 @@ export function Product() {
         <section className="section related-section">
           <div className="section-head-split">
             <h2>You May Also Like</h2>
-            <Link to={`/collections/${product.collectionSlug}`} className="view-all-link">
-              View Collection →
-            </Link>
+            {product.collectionSlug && (
+              <Link to={`/collections/${product.collectionSlug}`} className="view-all-link">
+                View Collection →
+              </Link>
+            )}
           </div>
           <div className="grid">
             {related.map((rp) => (

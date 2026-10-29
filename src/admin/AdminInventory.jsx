@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { inventoryAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
+import { formatImageUrl } from '../data.js'
 
 export function AdminInventory() {
   const [products, setProducts] = useState([])
@@ -130,7 +131,7 @@ export function AdminInventory() {
                       <td>
                         <div className="admin-prod-cell">
                           {p.images && p.images[0] ? (
-                            <img src={p.images[0]} alt={p.name} className="admin-thumb" />
+                            <img src={formatImageUrl(p.images?.[0])} alt={p.name} className="admin-thumb" />
                           ) : (
                             <div className="admin-thumb-empty">
                               <ShoppingBag size={16} strokeWidth={1.5} />

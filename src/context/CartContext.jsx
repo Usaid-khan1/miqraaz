@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { cartAPI, couponsAPI } from '../services/api.js'
+import { formatImageUrl } from '../data.js'
 import { useAuth } from './AuthContext.jsx'
 import { useToast } from './ToastContext.jsx'
 
@@ -65,7 +66,7 @@ export function CartProvider({ children }) {
         slug: p.slug,
         size: item.size,
         price: p.salePrice && p.salePrice < p.price ? p.salePrice : p.price,
-        img: p.images && p.images[0] ? p.images[0] : '',
+        img: formatImageUrl(p.images?.[0]),
         qty: item.qty,
         totalStock: p.totalStock,
       }
@@ -125,7 +126,7 @@ export function CartProvider({ children }) {
             slug: product.slug,
             price: itemPrice,
             size,
-            img: product.images && product.images[0] ? product.images[0] : '',
+            img: formatImageUrl(product.images?.[0]),
             qty: Math.min(qty, available),
             totalStock: available,
           },

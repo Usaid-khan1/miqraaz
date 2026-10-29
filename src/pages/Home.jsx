@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/Card.jsx'
 import { PageLoader } from '../components/PageLoader.jsx'
+import { formatImageUrl } from '../data.js'
 import { productsAPI, categoriesAPI, settingsAPI } from '../services/api.js'
 
 function ProductSlider({ items = [] }) {
@@ -103,7 +104,7 @@ export function Home() {
   }
 
   const heroBg = featuredChapter?.image
-    ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${featuredChapter.image})`
+    ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${formatImageUrl(featuredChapter.image)})`
     : 'linear-gradient(135deg, #0a0a0a 0%, #161616 50%, #0d0d0d 100%)'
 
   const heroKicker = featuredChapter
@@ -202,7 +203,7 @@ export function Home() {
               >
                 <div className="chapter-media">
                   {c.image ? (
-                    <img src={c.image} alt={c.name} loading="lazy" />
+                    <img src={formatImageUrl(c.image)} alt={c.name} loading="lazy" />
                   ) : (
                     <div className="ph chapter-ph">{c.name}</div>
                   )}

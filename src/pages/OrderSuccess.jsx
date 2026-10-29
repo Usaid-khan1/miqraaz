@@ -54,10 +54,24 @@ export function OrderSuccess() {
 
             <div className="receipt-section">
               <h4>Payment &amp; Status</h4>
-              <p>Payment Method: <span className="uppercase font-medium">{order.paymentMethod}</span></p>
+              <p>Payment Method: <span className="uppercase font-medium">{order.paymentMethod === 'bank_transfer' ? 'Bank Deposit (Direct Bank Transfer)' : 'Cash on Delivery'}</span></p>
               <p>Order Status: <span className="uppercase font-medium">{order.orderStatus}</span></p>
               <p>Payment Status: <span className="uppercase font-medium">{order.paymentStatus}</span></p>
             </div>
+
+            {order.paymentMethod === 'bank_transfer' && (
+              <div className="receipt-section bank-deposit-success-card">
+                <h4>Bank Transfer Instructions</h4>
+                <p className="bank-account-name">MUHAMMAD SHAHEER ALI</p>
+                <p className="bank-branch-name">BANK AL HABIB</p>
+                <p className="bank-row">Account Number : <span>50050081007758012</span></p>
+                <p className="bank-row">IBAN : <span>PK67BAHL5005008100775801</span></p>
+                <p className="bank-note">Please send us the payment screenshot for confirmation.</p>
+                <p className="bank-contact">
+                  Whatsapp : <a href="https://wa.me/923397837586" target="_blank" rel="noreferrer">0339 7837586</a>
+                </p>
+              </div>
+            )}
 
             <div className="receipt-items-list">
               <h4>Items Ordered</h4>

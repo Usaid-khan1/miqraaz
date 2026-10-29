@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import { X } from 'lucide-react'
 
 export function CartDrawer() {
@@ -62,7 +62,7 @@ export function CartDrawer() {
               {items.map((i) => (
                 <li key={i.key || i._id}>
                   {i.img ? (
-                    <img src={i.img} alt={i.name} />
+                    <img src={formatImageUrl(i.img)} alt={i.name} />
                   ) : (
                     <div className="ph small">MIQRAAZ</div>
                   )}

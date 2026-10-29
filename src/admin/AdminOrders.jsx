@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { ordersAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 
 export function AdminOrders() {
   const [orders, setOrders] = useState([])
@@ -452,7 +452,7 @@ export function AdminOrders() {
                           <td>
                             <div className="admin-prod-cell">
                               {item.image ? (
-                                <img src={item.image} alt={item.name} className="admin-thumb" />
+                                <img src={formatImageUrl(item.image)} alt={item.name} className="admin-thumb" />
                               ) : (
                                 <div className="admin-thumb-empty">
                                   <Package size={16} strokeWidth={1.5} />

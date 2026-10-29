@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { productsAPI, categoriesAPI, uploadAPI } from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 
 export function AdminProducts() {
   const [products, setProducts] = useState([])
@@ -110,15 +110,42 @@ export function AdminProducts() {
     setUploadingImage(true)
     try {
       const res = await uploadAPI.uploadImage(file)
-      setForm((prev) => ({
-        ...prev,
-        imagesText: prev.imagesText ? `${prev.imagesText}\n${res.url}` : res.url,
-      }))
+      setForm((prev) => {
+        // Keep valid existing image paths/URLs and append the new upload
+        const existing = prev.imagesText
+          .split('\n')
+          .map((s) => s.trim())
+          .filter((s) => s.startsWith('http://') || s.startsWith('https://') || s.startsWith('/') || s.startsWith('data:'))
+        existing.push(res.url)
+        return {
+          ...prev,
+          imagesText: existing.join('\n'),
+        }
+      })
       showToast('Image uploaded successfully', 'success')
     } catch (err) {
       showToast(err.message || 'Image upload failed', 'error')
     } finally {
       setUploadingImage(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleTogglePublish = async (p) => {
+    try {
+      const nextStatus = !p.isPublished
+      await productsAPI.update(p._id, { isPublished: nextStatus })
+      setProducts((prev) =>
+        prev.map((item) => (item._id === p._id ? { ...item, isPublished: nextStatus } : item))
+      )
+      showToast(
+        nextStatus
+          ? `"${p.name}" is now Published (visible on website)`
+          : `"${p.name}" is now Hidden from website`,
+        'success'
+      )
+    } catch (err) {
+      showToast(err.message || 'Failed to toggle status', 'error')
     }
   }
 
@@ -126,10 +153,11 @@ export function AdminProducts() {
     e.preventDefault()
     setSubmitting(true)
 
+    // Filter out dummy text that are not valid URLs or paths
     const imagesArray = form.imagesText
       .split('\n')
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter((s) => s.startsWith('http://') || s.startsWith('https://') || s.startsWith('/') || s.startsWith('data:'))
 
     const payload = {
       name: form.name,
@@ -239,13 +267,23 @@ export function AdminProducts() {
                   <tr key={p._id}>
                     <td>
                       <div className="admin-prod-cell">
-                        {p.images && p.images[0] ? (
-                          <img src={p.images[0]} alt={p.name} className="admin-thumb" />
-                        ) : (
-                          <div className="admin-thumb-empty">
-                            <ShoppingBag size={18} strokeWidth={1.5} />
-                          </div>
-                        )}
+                        {(() => {
+                          const validImg = p.images?.map(formatImageUrl).find(Boolean)
+                          return validImg ? (
+                            <img
+                              src={validImg}
+                              alt={p.name}
+                              className="admin-thumb"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <div className="admin-thumb-empty">
+                              <ShoppingBag size={18} strokeWidth={1.5} />
+                            </div>
+                          )
+                        })()}
                         <div>
                           <strong className="admin-prod-title">{p.name}</strong>
                           <div className="muted font-xs">{p.slug}</div>
@@ -270,9 +308,15 @@ export function AdminProducts() {
                       </span>
                     </td>
                     <td>
-                      <span className={`status-pill ${p.isPublished ? 'status-delivered' : 'status-cancelled'}`}>
+                      <button
+                        type="button"
+                        className={`status-pill ${p.isPublished ? 'status-delivered' : 'status-cancelled'}`}
+                        style={{ cursor: 'pointer', border: 'none' }}
+                        onClick={() => handleTogglePublish(p)}
+                        title="Click to toggle: Published / Hidden"
+                      >
                         {p.isPublished ? 'Published' : 'Hidden'}
-                      </span>
+                      </button>
                     </td>
                     <td>
                       {p.isFeatured ? (
@@ -487,6 +531,45 @@ export function AdminProducts() {
                   onChange={(e) => setForm({ ...form, imagesText: e.target.value })}
                   placeholder="https://miqraazofficial.com/...&#10;/uploads/file-123.jpg"
                 />
+                {form.imagesText.split('\n').filter(Boolean).length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                    {form.imagesText.split('\n').map((raw, idx) => {
+                      const formatted = formatImageUrl(raw)
+                      if (!formatted) return null
+                      return (
+                        <div key={idx} style={{ position: 'relative', width: '56px', height: '56px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                          <img src={formatted} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const lines = form.imagesText.split('\n').filter((_, i) => i !== idx)
+                              setForm({ ...form, imagesText: lines.join('\n') })
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: 2,
+                              right: 2,
+                              background: 'rgba(0,0,0,0.7)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '18px',
+                              height: '18px',
+                              fontSize: '11px',
+                              lineHeight: '18px',
+                              textAlign: 'center',
+                              cursor: 'pointer',
+                              padding: 0
+                            }}
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Sizes Stock */}

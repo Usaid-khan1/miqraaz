@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -11,6 +12,8 @@ import {
   ArrowUpRight,
   LogOut,
   ShieldCheck,
+  Menu,
+  X,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { LOGO_WHITE } from '../data.js'
@@ -18,6 +21,25 @@ import { LOGO_WHITE } from '../data.js'
 export function AdminLayout() {
   const { user, isAuthenticated, isAdmin, loading, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Automatically close mobile menu on page navigation
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
+
+  // Prevent background scrolling when mobile sidebar drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
 
   if (loading) {
     return (
@@ -49,13 +71,29 @@ export function AdminLayout() {
 
   return (
     <div className="admin-dashboard-root">
-      {/* Sidebar */}
-      <aside className="admin-sidebar">
+      {/* Mobile Drawer Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="admin-sidebar-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar Drawer */}
+      <aside className={`admin-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="admin-brand">
           <Link to="/" target="_blank" title="Open Storefront" className="admin-brand-logo-link">
             <img src={LOGO_WHITE} alt="مِقْرَاض" height="26" />
           </Link>
-          {/* <span className="admin-badge">Admin</span> */}
+          <button
+            type="button"
+            className="admin-sidebar-close-btn"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="admin-nav-menu">
@@ -157,6 +195,15 @@ export function AdminLayout() {
       <div className="admin-main-wrap">
         <header className="admin-topbar">
           <div className="admin-topbar-left">
+            <button
+              type="button"
+              className="admin-hamburger-btn"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              title="Open Navigation Menu"
+            >
+              <Menu size={20} />
+            </button>
             <span className="admin-topbar-breadcrumb">Management Console</span>
           </div>
           <div className="admin-topbar-actions">

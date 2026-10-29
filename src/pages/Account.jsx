@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { ordersAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -504,7 +504,7 @@ export function Account() {
                 {/* Profile Form */}
                 <div className="settings-box">
                   <h3>Personal Information</h3>
-                  <form onSubmit={handleUpdateProfile}>
+                  <form onSubmit={handleUpdateProfile} className="settings-form">
                     <div className="field-group">
                       <label>Full Name</label>
                       <input
@@ -528,7 +528,7 @@ export function Account() {
                         placeholder="0300 1234567"
                       />
                     </div>
-                    <button type="submit" className="btn sm" disabled={profileUpdating}>
+                    <button type="submit" className="btn sm settings-submit-btn" disabled={profileUpdating}>
                       {profileUpdating ? 'Saving...' : 'Save Profile'}
                     </button>
                   </form>
@@ -537,7 +537,7 @@ export function Account() {
                 {/* Password Form */}
                 <div className="settings-box">
                   <h3>Change Password</h3>
-                  <form onSubmit={handleChangePassword}>
+                  <form onSubmit={handleChangePassword} className="settings-form">
                     <div className="field-group">
                       <label>Current Password</label>
                       <input
@@ -565,7 +565,7 @@ export function Account() {
                         onChange={(e) => setConfirmNewPassword(e.target.value)}
                       />
                     </div>
-                    <button type="submit" className="btn sm" disabled={passwordUpdating}>
+                    <button type="submit" className="btn sm settings-submit-btn" disabled={passwordUpdating}>
                       {passwordUpdating ? 'Updating...' : 'Update Password'}
                     </button>
                   </form>
@@ -662,7 +662,7 @@ export function Account() {
                   {selectedOrder.items?.map((item, i) => (
                     <div key={i} className="order-item-snapshot-row">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="order-snapshot-thumb" />
+                        <img src={formatImageUrl(item.image)} alt={item.name} className="order-snapshot-thumb" />
                       ) : (
                         <div className="ph small">MIQRAAZ</div>
                       )}

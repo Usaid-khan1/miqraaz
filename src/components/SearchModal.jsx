@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { productsAPI } from '../services/api.js'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import { X } from 'lucide-react'
 
 export function SearchModal({ open, onClose }) {
@@ -147,8 +147,8 @@ export function SearchModal({ open, onClose }) {
                     onClick={onClose}
                   >
                     <div className="search-card-media">
-                      {p.images && p.images[0] ? (
-                        <img src={p.images[0]} alt={p.name} loading="lazy" />
+                      {formatImageUrl(p.images?.[0]) ? (
+                        <img src={formatImageUrl(p.images[0])} alt={p.name} loading="lazy" />
                       ) : (
                         <div className="ph small">MIQRAAZ</div>
                       )}

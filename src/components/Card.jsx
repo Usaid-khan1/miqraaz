@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import { useCart } from '../context/CartContext.jsx'
 
 export function Card({ p }) {
@@ -9,7 +9,9 @@ export function Card({ p }) {
 
   if (!p) return null
 
-  const images = Array.isArray(p.images) ? p.images : []
+  const images = Array.isArray(p.images)
+    ? p.images.map(formatImageUrl).filter(Boolean)
+    : []
   const img = hover && images[1] ? images[1] : images[0]
   const isSoldOut = (p.totalStock ?? 0) <= 0 || p.soldOut
 
@@ -59,16 +61,18 @@ export function Card({ p }) {
             </button>
           )}
         </div>
-        <h3 className="card-title">{p.name}</h3>
-        <div className="price-wrap">
-          {p.salePrice && p.salePrice < p.price ? (
-            <>
-              <span className="price-sale">{money(p.salePrice)}</span>
-              <span className="price-original">{money(p.price)}</span>
-            </>
-          ) : (
-            <span className="price">{money(p.price)}</span>
-          )}
+        <div className="card-meta">
+          <h3>{p.name}</h3>
+          <div className="price-row">
+            {p.salePrice ? (
+              <>
+                <span className="sale-price">{money(p.salePrice)}</span>
+                <span className="orig-price">{money(p.price)}</span>
+              </>
+            ) : (
+              <span>{money(p.price)}</span>
+            )}
+          </div>
         </div>
       </Link>
     </div>

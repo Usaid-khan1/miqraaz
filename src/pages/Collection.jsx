@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Card } from '../components/Card.jsx'
 import { PageLoader } from '../components/PageLoader.jsx'
+import { formatImageUrl } from '../data.js'
 import { productsAPI, categoriesAPI } from '../services/api.js'
 
 export function Collection() {
@@ -119,7 +120,7 @@ export function Collection() {
       {/* Category Banner if available */}
       {category && category.image && !isAll && (
         <div className="col-banner">
-          <img src={category.image} alt={category.name} />
+          <img src={formatImageUrl(category.image)} alt={category.name} />
         </div>
       )}
 

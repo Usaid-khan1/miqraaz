@@ -10,3 +10,22 @@ export const money = (n) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
+
+export const formatImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return ''
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+
+  // Filter out non-URL dummy strings (must be absolute URL, local path starting with /, or data URI)
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('/') && !trimmed.startsWith('data:')) {
+    return ''
+  }
+
+  // Prepend backend base for local /uploads paths
+  if (trimmed.startsWith('/uploads')) {
+    const backendBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1\/?$/, '')
+    return `${backendBase}${trimmed}`
+  }
+
+  return trimmed
+}

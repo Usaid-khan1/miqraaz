@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LOGO_WHITE, LOGO_BLACK } from '../data.js'
+import { LOGO_WHITE, LOGO_BLACK, formatImageUrl } from '../data.js'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { categoriesAPI } from '../services/api.js'
@@ -120,7 +120,7 @@ export function Header({ onOpenSearch }) {
                   onClick={() => setChap(false)}
                 >
                   {c.image ? (
-                    <img src={c.image} alt={c.name} loading="lazy" />
+                    <img src={formatImageUrl(c.image)} alt={c.name} loading="lazy" />
                   ) : (
                     <div className="ph mega-ph">{c.name}</div>
                   )}

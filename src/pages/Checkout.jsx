@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 import { ordersAPI, couponsAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 
 export function Checkout() {
   const { items, subtotal, coupon, applyCoupon, removeCoupon, clear } = useCart()
@@ -30,7 +30,7 @@ export function Checkout() {
   const [validatingCoupon, setValidatingCoupon] = useState(false)
 
   // Payment method
-  const [paymentMethod, setPaymentMethod] = useState('cod')
+  const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [agreedTerms, setAgreedTerms] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
@@ -293,37 +293,56 @@ export function Checkout() {
             {/* Payment Method Selector */}
             <div className="checkout-section-header" style={{ marginTop: '36px' }}>
               <span className="checkout-step-num">2</span>
-              <h2>Payment Method</h2>
+              <div>
+                <h2>Payment</h2>
+                <p className="muted font-xs" style={{ marginTop: '2px' }}>
+                  All transactions are secure and encrypted.
+                </p>
+              </div>
             </div>
 
-            <div className="payment-methods-grid">
-              <label className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="cod"
-                  checked={paymentMethod === 'cod'}
-                  onChange={() => setPaymentMethod('cod')}
-                />
-                <div className="payment-card-content">
-                  <strong>Cash on Delivery (COD)</strong>
-                  <p className="muted">Pay safely with cash upon receiving your parcel at your doorstep.</p>
-                </div>
-              </label>
+            <div className="payment-options-box">
+              {/* Option 1: Bank Deposit */}
+              <div className={`payment-option-group ${paymentMethod === 'bank_transfer' ? 'active' : ''}`}>
+                <label className="payment-option-header" onClick={() => setPaymentMethod('bank_transfer')}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="bank_transfer"
+                    checked={paymentMethod === 'bank_transfer'}
+                    onChange={() => setPaymentMethod('bank_transfer')}
+                  />
+                  <span className="payment-title">Bank Deposit</span>
+                </label>
 
-              <label className={`payment-method-card ${paymentMethod === 'bank_transfer' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="bank_transfer"
-                  checked={paymentMethod === 'bank_transfer'}
-                  onChange={() => setPaymentMethod('bank_transfer')}
-                />
-                <div className="payment-card-content">
-                  <strong>Direct Bank Transfer</strong>
-                  <p className="muted">Make payment directly to our Meezan Bank account. Account title: Miqraaz.</p>
-                </div>
-              </label>
+                {paymentMethod === 'bank_transfer' && (
+                  <div className="payment-option-details bank-details-box">
+                    <p className="bank-account-name">MUHAMMAD SHAHEER ALI</p>
+                    <p className="bank-branch-name">BANK AL HABIB</p>
+                    <p className="bank-row">Account Number : <span>50050081007758012</span></p>
+                    <p className="bank-row">IBAN : <span>PK67BAHL5005008100775801</span></p>
+                    
+                    <p className="bank-note">Please send us the payment screenshot for confirmation.</p>
+                    <p className="bank-contact">
+                      Whatsapp : <a href="https://wa.me/923397837586" target="_blank" rel="noreferrer">0339 7837586</a>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Option 2: Cash on Delivery (COD) */}
+              <div className={`payment-option-group ${paymentMethod === 'cod' ? 'active' : ''}`}>
+                <label className="payment-option-header" onClick={() => setPaymentMethod('cod')}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === 'cod'}
+                    onChange={() => setPaymentMethod('cod')}
+                  />
+                  <span className="payment-title">Cash on Delivery (COD)</span>
+                </label>
+              </div>
             </div>
 
             {/* Terms and conditions acceptance */}
@@ -364,7 +383,7 @@ export function Checkout() {
                 <div key={i.key || i._id} className="checkout-item-row">
                   <div className="checkout-item-thumb-wrap">
                     {i.img ? (
-                      <img src={i.img} alt={i.name} />
+                      <img src={formatImageUrl(i.img)} alt={i.name} />
                     ) : (
                       <div className="ph small">MIQRAAZ</div>
                     )}

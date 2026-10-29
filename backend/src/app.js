@@ -69,7 +69,15 @@ app.use('/api', apiLimiter)
 
 // Static files for uploaded images
 const uploadDir = path.resolve(__dirname, '../uploads')
-app.use('/uploads', express.static(uploadDir))
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    next()
+  },
+  express.static(uploadDir)
+)
 
 // API Health Check
 app.get('/api/v1/health', (req, res) => {

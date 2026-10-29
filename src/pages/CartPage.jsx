@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
-import { money } from '../data.js'
+import { money, formatImageUrl } from '../data.js'
 import { Sparkles, ArrowLeft } from 'lucide-react'
 
 export function CartPage() {
@@ -102,7 +102,7 @@ export function CartPage() {
                   <td className="cart-item-col">
                     <div className="cart-item-info-flex">
                       {item.img ? (
-                        <img src={item.img} alt={item.name} className="cart-row-thumb" />
+                        <img src={formatImageUrl(item.img)} alt={item.name} className="cart-row-thumb" />
                       ) : (
                         <div className="ph small cart-row-thumb">MIQRAAZ</div>
                       )}
