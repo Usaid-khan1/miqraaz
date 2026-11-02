@@ -65,16 +65,7 @@ export function Header({ onOpenSearch }) {
 
   return (
     <header className={`header ${isTransparent ? 'header-transparent' : 'header-solid'}`}>
-      <button
-        className="icon-btn burger"
-        onClick={() => setMenu(!menu)}
-        aria-label="Toggle navigation menu"
-      >
-        <span />
-        <span />
-        <span />
-      </button>
-
+      {/* Navigation Menu / Mobile Drawer */}
       <nav className={`nav ${menu ? 'open' : ''}`}>
         <Link to="/" className={loc.pathname === '/' ? 'active' : ''}>
           HOME
@@ -140,8 +131,64 @@ export function Header({ onOpenSearch }) {
         >
           CONTACT
         </Link>
+
+        {/* Mobile Navigation Drawer Account Section */}
+        <div className="mobile-nav-user-section">
+          {isAuthenticated ? (
+            <>
+              <div className="mobile-nav-user-info">
+                <span>Signed in as: <strong>{user?.name}</strong></span>
+              </div>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="mobile-nav-sublink"
+                  onClick={() => setMenu(false)}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+              <Link
+                to="/account"
+                className="mobile-nav-sublink"
+                onClick={() => setMenu(false)}
+              >
+                My Account
+              </Link>
+              <button
+                type="button"
+                className="mobile-nav-logout"
+                onClick={() => {
+                  setMenu(false)
+                  logout()
+                  navigate('/')
+                }}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <div className="mobile-nav-auth-buttons">
+              <Link
+                to="/login"
+                className="mobile-nav-auth-btn"
+                onClick={() => setMenu(false)}
+              >
+                Log In
+              </Link>
+              <Link
+                to="/register"
+                className="mobile-nav-auth-btn mobile-nav-auth-btn-alt"
+                onClick={() => setMenu(false)}
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
+        </div>
       </nav>
 
+      {/* Brand / Logo */}
       <Link to="/" className="logo" aria-label="Miqraaz Home">
         <img src={LOGO_WHITE} alt="مِقْرَاض" height="38" />
       </Link>
@@ -290,7 +337,27 @@ export function Header({ onOpenSearch }) {
           </svg>
           {count > 0 && <span className="cart-badge">{count}</span>}
         </button>
+
+        {/* Mobile Burger Menu Button (positioned on the right) */}
+        <button
+          className={`icon-btn burger ${menu ? 'active' : ''}`}
+          onClick={() => setMenu(!menu)}
+          aria-label="Toggle navigation menu"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </div>
+
+      {/* Mobile nav backdrop */}
+      {menu && (
+        <div
+          className="mobile-nav-backdrop"
+          onClick={() => setMenu(false)}
+          aria-hidden="true"
+        />
+      )}
     </header>
   )
 }

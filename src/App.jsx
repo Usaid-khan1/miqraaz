@@ -11,6 +11,7 @@ import { Header } from './components/Header.jsx'
 import { Footer } from './components/Footer.jsx'
 import { CartDrawer } from './components/CartDrawer.jsx'
 import { SearchModal } from './components/SearchModal.jsx'
+import { WhatsAppButton } from './components/WhatsAppButton.jsx'
 
 // Customer Pages
 import { Home } from './pages/Home.jsx'
@@ -103,6 +104,7 @@ function AppContent() {
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <CartDrawer />}
       {!isAdminRoute && <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />}
+      {!isAdminRoute && <WhatsAppButton />}
     </>
   )
 }

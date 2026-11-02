@@ -41,12 +41,7 @@ export function AdminProducts() {
     category: '',
     collectionSlug: '',
     imagesText: '',
-    sizes: [
-      { size: 'S', stock: 10 },
-      { size: 'M', stock: 15 },
-      { size: 'L', stock: 15 },
-      { size: 'XL', stock: 10 },
-    ],
+    selectedSizes: ['S', 'M', 'L', 'XL'],
     lowStockThreshold: 5,
     isFeatured: false,
     isPublished: true,
@@ -85,6 +80,9 @@ export function AdminProducts() {
 
   const handleOpenEdit = (p) => {
     setEditingProduct(p)
+    const existingSizes = Array.isArray(p.sizes)
+      ? p.sizes.map((s) => (typeof s === 'string' ? s : s.size)).filter(Boolean)
+      : []
     setForm({
       name: p.name || '',
       slug: p.slug || '',
@@ -95,7 +93,7 @@ export function AdminProducts() {
       category: p.category?._id || p.category || '',
       collectionSlug: p.collectionSlug || '',
       imagesText: Array.isArray(p.images) ? p.images.join('\n') : '',
-      sizes: p.sizes?.length ? p.sizes : initialForm.sizes,
+      selectedSizes: existingSizes.length > 0 ? existingSizes : ['S', 'M', 'L', 'XL'],
       lowStockThreshold: p.lowStockThreshold ?? 5,
       isFeatured: Boolean(p.isFeatured),
       isPublished: Boolean(p.isPublished),
@@ -151,6 +149,12 @@ export function AdminProducts() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!form.selectedSizes || form.selectedSizes.length === 0) {
+      showToast('Please select at least one size (S, M, L, XL)', 'error')
+      return
+    }
+
     setSubmitting(true)
 
     // Filter out dummy text that are not valid URLs or paths
@@ -158,6 +162,17 @@ export function AdminProducts() {
       .split('\n')
       .map((s) => s.trim())
       .filter((s) => s.startsWith('http://') || s.startsWith('https://') || s.startsWith('/') || s.startsWith('data:'))
+
+    const ALL_SIZES = ['S', 'M', 'L', 'XL']
+    const sizesPayload = ALL_SIZES
+      .filter((size) => form.selectedSizes.includes(size))
+      .map((size) => {
+        const existing = editingProduct?.sizes?.find((s) => s.size === size)
+        return {
+          size,
+          stock: existing && typeof existing.stock === 'number' && existing.stock > 0 ? existing.stock : 20,
+        }
+      })
 
     const payload = {
       name: form.name,
@@ -169,7 +184,7 @@ export function AdminProducts() {
       category: form.category || null,
       collectionSlug: form.collectionSlug,
       images: imagesArray,
-      sizes: form.sizes.map((s) => ({ size: s.size, stock: Number(s.stock) || 0 })),
+      sizes: sizesPayload,
       lowStockThreshold: Number(form.lowStockThreshold) || 5,
       isFeatured: Boolean(form.isFeatured),
       isPublished: Boolean(form.isPublished),
@@ -529,7 +544,7 @@ export function AdminProducts() {
                   rows={3}
                   value={form.imagesText}
                   onChange={(e) => setForm({ ...form, imagesText: e.target.value })}
-                  placeholder="https://miqraazofficial.com/...&#10;/uploads/file-123.jpg"
+                  placeholder="https://miqraazofficial.com/..."
                 />
                 {form.imagesText.split('\n').filter(Boolean).length > 0 && (
                   <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
@@ -572,25 +587,43 @@ export function AdminProducts() {
                 )}
               </div>
 
-              {/* Sizes Stock */}
+              {/* Sizes Selection */}
               <div className="field-group">
-                <label>Sizes &amp; Variant Inventory</label>
-                <div className="size-inputs-grid">
-                  {form.sizes.map((s, idx) => (
-                    <div key={s.size} className="size-stock-input-item">
-                      <span className="size-stock-tag">{s.size}</span>
-                      <input
-                        type="number"
-                        min={0}
-                        value={s.stock}
-                        onChange={(e) => {
-                          const updated = [...form.sizes]
-                          updated[idx].stock = e.target.value
-                          setForm({ ...form, sizes: updated })
-                        }}
-                      />
-                    </div>
-                  ))}
+                <div className="label-with-link">
+                  <label>Available Sizes *</label>
+                  <span className="admin-field-hint" style={{ margin: 0 }}>
+                    {form.selectedSizes.length} of 4 selected
+                  </span>
+                </div>
+                <div className="size-checkboxes-grid">
+                  {['S', 'M', 'L', 'XL'].map((size) => {
+                    const isChecked = form.selectedSizes.includes(size)
+                    return (
+                      <label
+                        key={size}
+                        className={`size-checkbox-tile ${isChecked ? 'active' : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm((prev) => ({
+                                ...prev,
+                                selectedSizes: [...prev.selectedSizes, size],
+                              }))
+                            } else {
+                              setForm((prev) => ({
+                                ...prev,
+                                selectedSizes: prev.selectedSizes.filter((s) => s !== size),
+                              }))
+                            }
+                          }}
+                        />
+                        <span className="size-tile-label">{size}</span>
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -604,7 +637,8 @@ export function AdminProducts() {
                     onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })}
                   />
                 </div>
-                <div className="field-group checkbox-align">
+                <div className="field-group">
+                  <label>Featured Status</label>
                   <label className="admin-custom-checkbox">
                     <input
                       type="checkbox"
@@ -614,7 +648,8 @@ export function AdminProducts() {
                     <span>Featured in Highlights</span>
                   </label>
                 </div>
-                <div className="field-group checkbox-align">
+                <div className="field-group">
+                  <label>Storefront Visibility</label>
                   <label className="admin-custom-checkbox">
                     <input
                       type="checkbox"

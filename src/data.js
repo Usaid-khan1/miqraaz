@@ -1,8 +1,11 @@
 import logo1 from './logo1.png'
+import logo1Black from './logo1_black.png'
+import logoBlack from './logo_black.png'
 
 export const LOGO = logo1
 export const LOGO_WHITE = logo1
-export const LOGO_BLACK = logo1
+export const LOGO_BLACK = logo1Black
+export const LOGO_ARABIC_BLACK = logoBlack
 
 export const money = (n) =>
   'Rs.' +

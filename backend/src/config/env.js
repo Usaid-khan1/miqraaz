@@ -22,4 +22,8 @@ export const ENV = {
   SMTP_PASS: process.env.SMTP_PASS,
   EMAIL_FROM: process.env.EMAIL_FROM,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'c7rxy1co',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '814753638555213',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || 'ruWZhkCmxSjMnXFd-9uenJ9xE0E',
+  CLOUDINARY_URL: process.env.CLOUDINARY_URL || 'cloudinary://814753638555213:ruWZhkCmxSjMnXFd-9uenJ9xE0E@c7rxy1co',
 }
