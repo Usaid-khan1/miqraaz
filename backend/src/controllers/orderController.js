@@ -19,9 +19,11 @@ export const createOrder = async (req, res, next) => {
     // Dispatch Order Confirmation Email via Gmail SMTP
     const customerEmail = req.user.email
     const customerName = req.user.name || shippingAddress?.fullName || 'Customer'
-    sendOrderConfirmationEmail(order, customerEmail, customerName).catch((mailErr) =>
+    try {
+      await sendOrderConfirmationEmail(order, customerEmail, customerName)
+    } catch (mailErr) {
       console.warn('[OrderEmail] Confirmation email warning:', mailErr.message)
-    )
+    }
 
     res.status(201).json({
       success: true,

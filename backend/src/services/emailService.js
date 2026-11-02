@@ -1,33 +1,45 @@
 import nodemailer from 'nodemailer'
 import { ENV } from '../config/env.js'
 
-let transporter = null
-
 export const getTransporter = () => {
-  if (!transporter && ENV.SMTP_USER && ENV.SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: ENV.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(ENV.SMTP_PORT) || 465,
-      secure: Boolean(ENV.SMTP_SECURE),
-      auth: {
-        user: ENV.SMTP_USER,
-        pass: ENV.SMTP_PASS,
-      },
-    })
+  const user = ENV.SMTP_USER || process.env.SMTP_USER
+  const pass = ENV.SMTP_PASS || process.env.SMTP_PASS
+  const host = ENV.SMTP_HOST || process.env.SMTP_HOST || 'smtp.gmail.com'
+  const port = Number(ENV.SMTP_PORT || process.env.SMTP_PORT) || 465
+  const isSecure = port === 465 || String(ENV.SMTP_SECURE || process.env.SMTP_SECURE) === 'true'
+
+  if (!user || !pass) {
+    return null
   }
-  return transporter
+
+  // Create transporter with proper timeouts for serverless environments
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: isSecure,
+    auth: {
+      user,
+      pass,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 7000,
+    socketTimeout: 15000,
+  })
 }
 
 export const sendMail = async ({ to, subject, html, text }) => {
   try {
     const transport = getTransporter()
     if (!transport) {
-      console.warn('[EmailService] SMTP not configured. Skipping email dispatch.')
+      console.warn(
+        `[EmailService] SMTP not configured. Missing SMTP_USER (${Boolean(ENV.SMTP_USER || process.env.SMTP_USER)}) or SMTP_PASS (${Boolean(ENV.SMTP_PASS || process.env.SMTP_PASS)}). Skipping email to: ${to}`
+      )
       return { success: false, message: 'SMTP not configured' }
     }
 
+    console.log(`[EmailService] Attempting to send email "${subject}" to ${to}...`)
     const info = await transport.sendMail({
-      from: ENV.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER}>`,
+      from: ENV.EMAIL_FROM || process.env.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER || process.env.SMTP_USER}>`,
       to,
       subject,
       text: text || subject,
@@ -37,7 +49,7 @@ export const sendMail = async ({ to, subject, html, text }) => {
     console.log(`[EmailService] Email sent successfully to ${to}. MessageId: ${info.messageId}`)
     return { success: true, messageId: info.messageId }
   } catch (error) {
-    console.error(`[EmailService] Failed to send email to ${to}: ${error.message}`)
+    console.error(`[EmailService] Failed to send email to ${to}:`, error.message)
     return { success: false, error: error.message }
   }
 }

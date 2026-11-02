@@ -48,9 +48,11 @@ export const register = async (req, res, next) => {
     const token = generateToken(user)
 
     // Dispatch luxury welcome email to new customer asynchronously
-    sendWelcomeEmail(user).catch((err) =>
+    try {
+      await sendWelcomeEmail(user)
+    } catch (err) {
       console.warn('[WelcomeEmail] Failed to dispatch welcome email:', err.message)
-    )
+    }
 
     res.status(201).json({
       success: true,
