@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { User } from '../models/User.js'
 import { generateToken } from '../utils/generateToken.js'
-import { sendPasswordResetEmail } from '../services/emailService.js'
+import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService.js'
 
 export const register = async (req, res, next) => {
   try {
@@ -46,6 +46,11 @@ export const register = async (req, res, next) => {
     })
 
     const token = generateToken(user)
+
+    // Dispatch luxury welcome email to new customer asynchronously
+    sendWelcomeEmail(user).catch((err) =>
+      console.warn('[WelcomeEmail] Failed to dispatch welcome email:', err.message)
+    )
 
     res.status(201).json({
       success: true,
