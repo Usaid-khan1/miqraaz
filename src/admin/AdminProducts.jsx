@@ -28,6 +28,7 @@ export function AdminProducts() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingSizeChart, setUploadingSizeChart] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { showToast, confirmModal } = useToast()
 
@@ -41,6 +42,7 @@ export function AdminProducts() {
     category: '',
     collectionSlug: '',
     imagesText: '',
+    sizeChart: '',
     selectedSizes: ['S', 'M', 'L', 'XL'],
     lowStockThreshold: 5,
     isFeatured: false,
@@ -93,6 +95,7 @@ export function AdminProducts() {
       category: p.category?._id || p.category || '',
       collectionSlug: p.collectionSlug || '',
       imagesText: Array.isArray(p.images) ? p.images.join('\n') : '',
+      sizeChart: p.sizeChart || '',
       selectedSizes: existingSizes.length > 0 ? existingSizes : ['S', 'M', 'L', 'XL'],
       lowStockThreshold: p.lowStockThreshold ?? 5,
       isFeatured: Boolean(p.isFeatured),
@@ -125,6 +128,23 @@ export function AdminProducts() {
       showToast(err.message || 'Image upload failed', 'error')
     } finally {
       setUploadingImage(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleSizeChartUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingSizeChart(true)
+    try {
+      const res = await uploadAPI.uploadImage(file)
+      setForm((prev) => ({ ...prev, sizeChart: res.url }))
+      showToast('Size chart image uploaded successfully', 'success')
+    } catch (err) {
+      showToast(err.message || 'Size chart upload failed', 'error')
+    } finally {
+      setUploadingSizeChart(false)
       e.target.value = ''
     }
   }
@@ -184,6 +204,7 @@ export function AdminProducts() {
       category: form.category || null,
       collectionSlug: form.collectionSlug,
       images: imagesArray,
+      sizeChart: form.sizeChart || '',
       sizes: sizesPayload,
       lowStockThreshold: Number(form.lowStockThreshold) || 5,
       isFeatured: Boolean(form.isFeatured),
@@ -583,6 +604,60 @@ export function AdminProducts() {
                         </div>
                       )
                     })}
+                  </div>
+                )}
+              </div>
+
+              {/* Size Chart / Measurement Guide */}
+              <div className="field-group">
+                <div className="label-with-link">
+                  <label>Size Chart / Measurement Guide (Optional)</label>
+                  <label className="admin-upload-btn-inline">
+                    <UploadCloud size={14} />
+                    <span>{uploadingSizeChart ? 'Uploading...' : 'Upload Size Chart Image'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      disabled={uploadingSizeChart}
+                      onChange={handleSizeChartUpload}
+                    />
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value={form.sizeChart}
+                  onChange={(e) => setForm({ ...form, sizeChart: e.target.value })}
+                  placeholder="https://... (or click 'Upload Size Chart Image')"
+                />
+                {form.sizeChart && (
+                  <div className="size-chart-preview-box">
+                    <div className="size-chart-thumb-wrap">
+                      <img
+                        src={formatImageUrl(form.sizeChart)}
+                        alt="Size Chart Preview"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                      <button
+                        type="button"
+                        className="size-chart-remove-btn"
+                        onClick={() => setForm({ ...form, sizeChart: '' })}
+                        title="Remove Size Chart"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="size-chart-preview-info">
+                      <span className="size-chart-active-tag">✓ Size Chart Attached</span>
+                      <a
+                        href={formatImageUrl(form.sizeChart)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="size-chart-view-link"
+                      >
+                        View Full Image <ExternalLink size={12} />
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>

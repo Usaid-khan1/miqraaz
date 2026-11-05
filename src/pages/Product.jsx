@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext.jsx'
 import { productsAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
 import { Card } from '../components/Card.jsx'
+import { X } from 'lucide-react'
 
 export function Product() {
   const { slug } = useParams()
@@ -16,6 +17,7 @@ export function Product() {
   const [activeImgIndex, setActiveImgIndex] = useState(0)
   const [selectedSize, setSelectedSize] = useState('M')
   const [qty, setQty] = useState(1)
+  const [showSizeChart, setShowSizeChart] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -142,7 +144,24 @@ export function Product() {
           {product.sizes && product.sizes.length > 0 && (
             <div className="pdp-section-wrap">
               <div className="size-label-row">
-                <span className="label">SIZE</span>
+                <div className="size-label-left">
+                  <span className="label">SIZE</span>
+                  {product.sizeChart && (
+                    <button
+                      type="button"
+                      className="pdp-size-guide-btn"
+                      onClick={() => setShowSizeChart(true)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.3 15.3l-6.6-6.6a2 2 0 0 0-2.8 0L2.7 17.9a2 2 0 0 0 0 2.8l3.6 3.6a2 2 0 0 0 2.8 0l9.2-9.2a2 2 0 0 0 0-2.8z"/>
+                        <path d="M8 14l2-2"/>
+                        <path d="M12 10l2-2"/>
+                        <path d="M16 6l2-2"/>
+                      </svg>
+                      <span>Size Guide</span>
+                    </button>
+                  )}
+                </div>
                 <span className="stock-hint">
                   {currentStock > 0
                     ? currentStock <= 5
@@ -243,6 +262,35 @@ export function Product() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Size Chart Modal */}
+      {showSizeChart && product?.sizeChart && (
+        <div className="size-chart-modal-overlay" onClick={() => setShowSizeChart(false)}>
+          <div className="size-chart-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="size-chart-modal-header">
+              <div>
+                <h3 className="size-chart-modal-title">Size Guide — {product.name}</h3>
+                <p className="size-chart-modal-subtitle">All measurements are provided in inches</p>
+              </div>
+              <button
+                type="button"
+                className="size-chart-close-btn"
+                onClick={() => setShowSizeChart(false)}
+                aria-label="Close size guide"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="size-chart-modal-body">
+              <img
+                src={formatImageUrl(product.sizeChart)}
+                alt={`Size Guide for ${product.name}`}
+                className="size-chart-full-img"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </>
   )

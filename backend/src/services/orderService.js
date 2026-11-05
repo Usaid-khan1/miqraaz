@@ -38,6 +38,11 @@ export const createOrderService = async ({
     }
   }
 
+  // Validate COD payment method against store settings
+  if (paymentMethod === 'cod' && storeSettings.codEnabled === false) {
+    throw new Error('Cash on Delivery (COD) is currently disabled. Please select Bank Deposit.')
+  }
+
   // 2. Fetch fresh products from DB, validate availability, calculate subtotal
   const orderItems = []
   let calculatedSubtotal = 0
@@ -109,15 +114,19 @@ export const createOrderService = async ({
     }
   }
 
-  // 4. Calculate Shipping and Taxes
-  const shippingFee =
-    calculatedSubtotal >= storeSettings.freeShippingThreshold
-      ? 0
-      : storeSettings.standardShippingFee
+  // 4. Calculate Shipping and Taxes dynamically from store settings
+  const standardFee = Number(storeSettings.standardShippingFee ?? 0)
+  const threshold = Number(storeSettings.freeShippingThreshold ?? 0)
+  const isFreeDelivery =
+    standardFee === 0 ||
+    threshold === 0 ||
+    (threshold > 0 && calculatedSubtotal >= threshold)
+
+  const shippingFee = isFreeDelivery ? 0 : standardFee
 
   const taxableAmount = Math.max(0, calculatedSubtotal - discountAmount)
-  const tax = storeSettings.taxRatePercent > 0
-    ? Math.round((taxableAmount * storeSettings.taxRatePercent) / 100)
+  const tax = Number(storeSettings.taxRatePercent) > 0
+    ? Math.round((taxableAmount * Number(storeSettings.taxRatePercent)) / 100)
     : 0
 
   const grandTotal = Math.max(0, calculatedSubtotal - discountAmount + shippingFee + tax)

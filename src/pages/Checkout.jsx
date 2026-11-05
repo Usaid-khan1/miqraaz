@@ -3,6 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { useSettings } from '../context/SettingsContext.jsx'
 import { ordersAPI, couponsAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
 import { money, formatImageUrl } from '../data.js'
@@ -86,12 +87,27 @@ export function Checkout() {
     }
   }
 
-  // Calculate pricing breakdown
-  const FREE_SHIPPING_THRESHOLD = 8000
-  const STANDARD_SHIPPING = 250
-  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
+  const {
+    calculateShipping,
+    calculateTax,
+    taxRatePercent,
+    codEnabled,
+    contactPhone,
+  } = useSettings()
+
+  // Fallback to bank transfer if COD is disabled by admin settings
+  useEffect(() => {
+    if (!codEnabled && paymentMethod === 'cod') {
+      setPaymentMethod('bank_transfer')
+    }
+  }, [codEnabled, paymentMethod])
+
+  // Calculate pricing breakdown dynamically from admin settings
   const discountAmount = coupon?.discountAmount || 0
-  const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee)
+  const taxableAmount = Math.max(0, subtotal - discountAmount)
+  const shippingFee = calculateShipping(subtotal)
+  const tax = calculateTax(taxableAmount)
+  const grandTotal = Math.max(0, taxableAmount + shippingFee + tax)
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault()
@@ -324,25 +340,27 @@ export function Checkout() {
                     
                     <p className="bank-note">Please send us the payment screenshot for confirmation.</p>
                     <p className="bank-contact">
-                      Whatsapp : <a href="https://wa.me/923397837586" target="_blank" rel="noreferrer">0339 7837586</a>
+                      Whatsapp : <a href={`https://wa.me/${(contactPhone || '0339 7837586').replace(/[^0-9]/g, '').startsWith('92') ? (contactPhone || '0339 7837586').replace(/[^0-9]/g, '') : '92' + (contactPhone || '0339 7837586').replace(/[^0-9]/g, '').replace(/^0/, '')}`} target="_blank" rel="noreferrer">{contactPhone || '0339 7837586'}</a>
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Option 2: Cash on Delivery (COD) */}
-              <div className={`payment-option-group ${paymentMethod === 'cod' ? 'active' : ''}`}>
-                <label className="payment-option-header" onClick={() => setPaymentMethod('cod')}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cod"
-                    checked={paymentMethod === 'cod'}
-                    onChange={() => setPaymentMethod('cod')}
-                  />
-                  <span className="payment-title">Cash on Delivery (COD)</span>
-                </label>
-              </div>
+              {/* Option 2: Cash on Delivery (COD) - only shown when enabled in Admin Settings */}
+              {codEnabled && (
+                <div className={`payment-option-group ${paymentMethod === 'cod' ? 'active' : ''}`}>
+                  <label className="payment-option-header" onClick={() => setPaymentMethod('cod')}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
+                    />
+                    <span className="payment-title">Cash on Delivery (COD)</span>
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Terms and conditions acceptance */}
@@ -454,6 +472,13 @@ export function Checkout() {
                 )}
               </span>
             </div>
+
+            {tax > 0 && (
+              <div className="summary-row">
+                <span>Tax ({taxRatePercent}%)</span>
+                <span>{money(tax)}</span>
+              </div>
+            )}
 
             <hr className="summary-sep" />
 

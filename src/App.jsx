@@ -4,6 +4,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 // Providers
 import { ToastProvider } from './context/ToastContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { SettingsProvider } from './context/SettingsContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 
 // Customer Components
@@ -113,9 +114,11 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
+        <SettingsProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </SettingsProvider>
       </AuthProvider>
     </ToastProvider>
   )

@@ -1,8 +1,18 @@
+import { useSettings } from '../context/SettingsContext.jsx'
+
 export function WhatsAppButton() {
-  const phoneNumber = '923397837586'
-  const displayPhone = '0339 7837586'
-  const defaultMessage = encodeURIComponent('Hi Miqraaz, I have an inquiry about your collection.')
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${defaultMessage}`
+  const { contactPhone, storeName } = useSettings()
+
+  const rawPhone = (contactPhone || '0339 7837586').replace(/[^0-9]/g, '')
+  const intlPhone = rawPhone.startsWith('92')
+    ? rawPhone
+    : rawPhone.startsWith('0')
+    ? '92' + rawPhone.slice(1)
+    : '92' + rawPhone
+
+  const displayPhone = contactPhone || '0339 7837586'
+  const defaultMessage = encodeURIComponent(`Hi ${storeName || 'Miqraaz'}, I have an inquiry about your collection.`)
+  const whatsappUrl = `https://wa.me/${intlPhone}?text=${defaultMessage}`
 
   return (
     <a

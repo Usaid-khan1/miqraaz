@@ -2,14 +2,23 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { useSettings } from '../context/SettingsContext.jsx'
 import { money, formatImageUrl } from '../data.js'
-import { X } from 'lucide-react'
+import { X, Sparkles } from 'lucide-react'
 
 export function CartDrawer() {
   const { cartOpen, closeCart, items, update, remove, subtotal } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee } = useSettings()
   const navigate = useNavigate()
+
+  const shippingFee = calculateShipping(subtotal)
+  const isFreeDelivery = shippingFee === 0
+  const amountNeeded =
+    freeShippingThreshold > 0 && standardShippingFee > 0
+      ? Math.max(0, freeShippingThreshold - subtotal)
+      : 0
 
   const handleCheckoutClick = () => {
     closeCart()
@@ -31,6 +40,27 @@ export function CartDrawer() {
             <X size={18} />
           </button>
         </div>
+
+        {items.length > 0 && (
+          <div className={`drawer-shipping-notice ${isFreeDelivery ? 'unlocked' : ''}`}>
+            {isFreeDelivery ? (
+              <div className="drawer-shipping-unlocked">
+                <Sparkles size={14} />
+                <span>You've unlocked <strong>FREE Shipping!</strong></span>
+              </div>
+            ) : amountNeeded > 0 ? (
+              <div className="drawer-shipping-progress">
+                <span>Add <strong>{money(amountNeeded)}</strong> more for <strong>FREE Shipping</strong></span>
+                <div className="drawer-progress-track">
+                  <div
+                    className="drawer-progress-fill"
+                    style={{ width: `${Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {items.length === 0 ? (
           <div className="empty">

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { useSettings } from '../context/SettingsContext.jsx'
 import { money, formatImageUrl } from '../data.js'
 import { Sparkles, ArrowLeft } from 'lucide-react'
 
@@ -10,16 +11,18 @@ export function CartPage() {
   const { items, update, remove, subtotal, coupon, applyCoupon, removeCoupon } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee } = useSettings()
   const navigate = useNavigate()
 
   const [couponInput, setCouponInput] = useState('')
   const [applying, setApplying] = useState(false)
 
-  const FREE_SHIPPING_THRESHOLD = 8000
-  const STANDARD_SHIPPING = 250
-  const qualifiesForFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
-  const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
-  const shippingFee = qualifiesForFreeShipping ? 0 : STANDARD_SHIPPING
+  const shippingFee = calculateShipping(subtotal)
+  const qualifiesForFreeShipping = shippingFee === 0
+  const amountNeeded =
+    freeShippingThreshold > 0 && standardShippingFee > 0
+      ? Math.max(0, freeShippingThreshold - subtotal)
+      : 0
   const discountAmount = coupon?.discountAmount || 0
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee)
 

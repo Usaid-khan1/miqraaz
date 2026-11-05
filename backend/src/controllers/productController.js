@@ -28,7 +28,15 @@ export const getProducts = async (req, res, next) => {
 
     // Collection or category slug
     if (collection && collection !== 'all' && collection !== 'all-products') {
-      filter.collectionSlug = collection.toLowerCase()
+      const cat = await Category.findOne({ slug: collection.toLowerCase() }).select('_id')
+      if (cat) {
+        filter.$or = [
+          { collectionSlug: collection.toLowerCase() },
+          { category: cat._id },
+        ]
+      } else {
+        filter.collectionSlug = collection.toLowerCase()
+      }
     }
 
     if (category) {
@@ -37,11 +45,17 @@ export const getProducts = async (req, res, next) => {
 
     // Search by name or description
     if (search && search.trim()) {
-      filter.$or = [
+      const searchOr = [
         { name: { $regex: search.trim(), $options: 'i' } },
         { description: { $regex: search.trim(), $options: 'i' } },
         { sku: { $regex: search.trim(), $options: 'i' } },
       ]
+      if (filter.$or) {
+        filter.$and = [{ $or: filter.$or }, { $or: searchOr }]
+        delete filter.$or
+      } else {
+        filter.$or = searchOr
+      }
     }
 
     // Price filtering
@@ -161,6 +175,7 @@ export const createProduct = async (req, res, next) => {
       category,
       collectionSlug,
       images,
+      sizeChart,
       sizes,
       lowStockThreshold,
       isFeatured,
@@ -203,6 +218,7 @@ export const createProduct = async (req, res, next) => {
       category: category || null,
       collectionSlug: collectionSlug ? collectionSlug.toLowerCase().trim() : '',
       images: Array.isArray(images) ? images : [],
+      sizeChart: sizeChart || '',
       sizes: sizesArr,
       totalStock,
       lowStockThreshold: Number(lowStockThreshold) || 5,
@@ -252,6 +268,7 @@ export const updateProduct = async (req, res, next) => {
       category,
       collectionSlug,
       images,
+      sizeChart,
       sizes,
       lowStockThreshold,
       isFeatured,
@@ -266,6 +283,7 @@ export const updateProduct = async (req, res, next) => {
     if (category !== undefined) product.category = category || null
     if (collectionSlug !== undefined) product.collectionSlug = collectionSlug.toLowerCase().trim()
     if (images !== undefined) product.images = images
+    if (sizeChart !== undefined) product.sizeChart = sizeChart
     if (lowStockThreshold !== undefined) product.lowStockThreshold = Number(lowStockThreshold)
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured)
     if (isPublished !== undefined) product.isPublished = Boolean(isPublished)

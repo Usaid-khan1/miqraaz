@@ -1,35 +1,30 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { LOGO_BLACK } from '../data.js'
-import { settingsAPI } from '../services/api.js'
+import { LOGO_WHITE } from '../data.js'
+import { useSettings } from '../context/SettingsContext.jsx'
 
 export function Footer() {
-  const [settings, setSettings] = useState(null)
-
-  useEffect(() => {
-    settingsAPI
-      .get()
-      .then((res) => {
-        if (res?.settings) setSettings(res.settings)
-      })
-      .catch(() => {})
-  }, [])
-
-  const storeName = settings?.storeName || 'MIQRAAZ'
-  const tagline = settings?.tagline || ''
+  const { storeName, tagline, address, contactPhone } = useSettings()
 
   const instagramUrl = 'https://www.instagram.com/miqraaz.official?srtk=aDJ3NDk5c3cwZXVr'
   const facebookUrl = 'https://www.facebook.com/share/1F8Kgzwh3S/'
-  const whatsappUrl = 'https://wa.me/923397837586'
-  const displayPhone = '0339 7837586'
+
+  const rawPhone = (contactPhone || '0339 7837586').replace(/[^0-9]/g, '')
+  const intlPhone = rawPhone.startsWith('92')
+    ? rawPhone
+    : rawPhone.startsWith('0')
+    ? '92' + rawPhone.slice(1)
+    : '92' + rawPhone
+
+  const whatsappUrl = `https://wa.me/${intlPhone}`
+  const displayPhone = contactPhone || '0339 7837586'
 
   return (
     <footer className="footer">
       <div className="footer-top">
         <div className="footer-col-brand">
-          <img src={LOGO_BLACK} alt="مِقْرَاض" className="flogo" />
+          <img src={LOGO_WHITE} alt="مِقْرَاض" className="flogo" />
           {tagline && <p className="footer-tagline">{tagline}</p>}
-          {settings?.address && <p className="footer-address">{settings.address}</p>}
+          {address && <p className="footer-address">{address}</p>}
         </div>
 
         <div>

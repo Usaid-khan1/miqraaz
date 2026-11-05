@@ -45,7 +45,6 @@ function ProductSlider({ items = [] }) {
 }
 
 export function Home() {
-  const [featuredChapter, setFeaturedChapter] = useState(null)
   const [sliderProducts, setSliderProducts] = useState([])
   const [exploreProducts, setExploreProducts] = useState([])
   const [chapters, setChapters] = useState([])
@@ -64,12 +63,18 @@ export function Home() {
         ])
 
         const allCats = catsRes?.categories || []
-        const heroCat = allCats.length > 0 ? allCats[0] : null
+        const currentSettings = settingsRes?.settings || {}
+
+        // Determine slider collection from settings heroButtonLink or vol-01
+        let sliderCollectionSlug = 'vol-01'
+        if (currentSettings.heroButtonLink && currentSettings.heroButtonLink.includes('/collections/')) {
+          sliderCollectionSlug = currentSettings.heroButtonLink.split('/collections/')[1]?.replace(/\/$/, '')
+        }
 
         let sliderItems = []
-        if (heroCat?.slug) {
+        if (sliderCollectionSlug && sliderCollectionSlug !== 'all') {
           const sliderRes = await productsAPI
-            .getAll({ collection: heroCat.slug, limit: 8 })
+            .getAll({ collection: sliderCollectionSlug, limit: 16 })
             .catch(() => ({ products: [] }))
           sliderItems = sliderRes?.products || []
         }
@@ -80,10 +85,10 @@ export function Home() {
         }
 
         if (isMounted) {
-          setFeaturedChapter(heroCat)
           setSliderProducts(sliderItems)
           setExploreProducts(exploreRes?.products || [])
-          setChapters(heroCat ? allCats.filter((c) => c.slug !== heroCat.slug) : allCats)
+          // All chapters remain in bottom chapters grid independently of hero
+          setChapters(allCats)
           if (settingsRes?.settings) setSettings(settingsRes.settings)
         }
       } catch (err) {
@@ -103,27 +108,23 @@ export function Home() {
     return <PageLoader text="LOADING MIQRAAZ" />
   }
 
-  const heroBg = featuredChapter?.image
-    ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${formatImageUrl(featuredChapter.image)})`
-    : 'linear-gradient(135deg, #0a0a0a 0%, #161616 50%, #0d0d0d 100%)'
+  // Hero section is controlled by Admin Settings
+  const heroImageSrc =
+    settings?.heroImage ||
+    'https://res.cloudinary.com/c7rxy1co/image/upload/v1793818783/miqraaz/mbxziae2wzmudyoyjfc2.avif'
 
-  const heroKicker = featuredChapter
-    ? 'FEATURED COLLECTION'
-    : settings?.brandNameUrdu || 'مِقْرَاض'
+  const heroBg = `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${formatImageUrl(heroImageSrc)})`
 
-  const heroTitle = featuredChapter
-    ? featuredChapter.name
-    : settings?.storeName || 'MIQRAAZ'
-
-  const heroDesc = featuredChapter?.description || settings?.tagline || ''
-
-  const heroLink = featuredChapter
-    ? `/collections/${featuredChapter.slug}`
-    : '/collections/all'
+  const heroKicker = settings?.heroKicker || 'NEW CHAPTER'
+  const heroTitle = settings?.heroTitle || settings?.storeName || 'DASTAK'
+  const heroDesc = settings?.heroDescription || settings?.tagline || 'A knock before an arrival.'
+  const heroBtnText = settings?.heroButtonText || 'SHOP NOW'
+  const heroLink = settings?.heroButtonLink || '/collections/vol-01'
+  const sliderSectionTitle = settings?.sliderTitle || 'DASTAK - VOL 01'
 
   return (
     <>
-      {/* 1. Dynamic Hero Section */}
+      {/* 1. Dynamic Hero Section Controlled by Admin Settings */}
       <section
         className="hero"
         style={{
@@ -137,7 +138,7 @@ export function Home() {
           <h1 className="hero-title">{heroTitle}</h1>
           {heroDesc && <p className="hero-desc">{heroDesc}</p>}
           <Link className="hero-btn" to={heroLink}>
-            SHOP NOW
+            {heroBtnText}
           </Link>
         </div>
       </section>
@@ -163,6 +164,9 @@ export function Home() {
       {/* 3. Dynamic Horizontal Product Slider */}
       {sliderProducts.length > 0 && (
         <section className="section product-slider-section">
+          <div className="slider-section-head">
+            <h2 className="slider-section-title">{sliderSectionTitle}</h2>
+          </div>
           <ProductSlider items={sliderProducts} />
         </section>
       )}
@@ -188,12 +192,9 @@ export function Home() {
         )}
       </section>
 
-      {/* 5. Chapters of Expression */}
+      {/* 5. Chapters Section (Directly above Footer) */}
       {chapters.length > 0 && (
         <section className="section chapters-section">
-          <div className="section-head">
-            <h2>Collections</h2>
-          </div>
           <div className="chapter-grid-2col">
             {chapters.map((c) => (
               <Link
@@ -210,7 +211,7 @@ export function Home() {
                 </div>
                 <div className="chapter-overlay">
                   <h3 className="chapter-card-title">{c.name}</h3>
-                  <span className="chapter-card-shop">SHOP NOW</span>
+                  <span className="chapter-card-shop">Shop now</span>
                 </div>
               </Link>
             ))}

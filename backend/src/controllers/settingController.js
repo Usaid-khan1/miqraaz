@@ -36,6 +36,13 @@ export const updateSettings = async (req, res, next) => {
       'codEnabled',
       'address',
       'announcementText',
+      'heroKicker',
+      'heroTitle',
+      'heroDescription',
+      'heroButtonText',
+      'heroButtonLink',
+      'heroImage',
+      'sliderTitle',
     ]
 
     allowed.forEach((field) => {
