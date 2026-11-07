@@ -11,7 +11,7 @@ export function CartPage() {
   const { items, update, remove, subtotal, coupon, applyCoupon, removeCoupon } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
-  const { calculateShipping, freeShippingThreshold, standardShippingFee, shippingMode } = useSettings()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee, karachiShippingFee, shippingMode } = useSettings()
   const navigate = useNavigate()
 
   const [couponInput, setCouponInput] = useState('')
@@ -19,10 +19,8 @@ export function CartPage() {
 
   const qualifiesForFreeShipping = shippingMode === 'free' || (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold)
   const shippingFee = qualifiesForFreeShipping ? 0 : Number(standardShippingFee || 250)
-  const amountNeeded =
-    freeShippingThreshold > 0 && standardShippingFee > 0
-      ? Math.max(0, freeShippingThreshold - subtotal)
-      : 0
+  const hasThreshold = shippingMode !== 'free' && freeShippingThreshold > 0
+  const amountNeeded = hasThreshold ? Math.max(0, freeShippingThreshold - subtotal) : 0
   const discountAmount = coupon?.discountAmount || 0
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee)
 
@@ -68,24 +66,26 @@ export function CartPage() {
       <h1 className="page-title">Shopping Cart</h1>
 
       {/* Free Shipping Motivator Progress */}
-      <div className="free-shipping-bar-wrap">
-        {qualifiesForFreeShipping ? (
-          <div className="free-shipping-success flex-center-row">
-            <Sparkles size={16} />
-            <span>Congratulations! Your order qualifies for <strong>FREE SHIPPING</strong>.</span>
-          </div>
-        ) : (
-          <div className="free-shipping-hint">
-            Add <strong>{money(amountNeeded)}</strong> more to unlock <strong>FREE SHIPPING</strong>.
-            <div className="free-shipping-track">
-              <div
-                className="free-shipping-fill"
-                style={{ width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
-              />
+      {(qualifiesForFreeShipping || hasThreshold) && (
+        <div className="free-shipping-bar-wrap">
+          {qualifiesForFreeShipping ? (
+            <div className="free-shipping-success flex-center-row">
+              <Sparkles size={16} />
+              <span>Congratulations! Your order qualifies for <strong>FREE SHIPPING</strong>.</span>
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="free-shipping-hint">
+              Add <strong>{money(amountNeeded)}</strong> more to unlock <strong>FREE SHIPPING</strong>.
+              <div className="free-shipping-track">
+                <div
+                  className="free-shipping-fill"
+                  style={{ width: `${Math.min(100, (subtotal / (freeShippingThreshold || 1)) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="cart-layout-grid">
         {/* Items List */}
@@ -208,7 +208,12 @@ export function CartPage() {
               {qualifiesForFreeShipping ? (
                 <span className="text-free">{shippingMode === 'free' ? 'FREE (Nationwide)' : 'FREE'}</span>
               ) : (
-                <span>{money(shippingFee)} <small style={{ color: '#64748b' }}>(Free in Karachi)</small></span>
+                <span>
+                  {money(shippingFee)}{' '}
+                  <small style={{ color: '#64748b' }}>
+                    ({Number(karachiShippingFee || 0) === 0 ? 'Free in Karachi' : `Rs. ${karachiShippingFee} in Karachi`})
+                  </small>
+                </span>
               )}
             </span>
           </div>

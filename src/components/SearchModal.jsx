@@ -92,7 +92,7 @@ export function SearchModal({ open, onClose }) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search products, collections, styles..."
+            placeholder="Search products..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

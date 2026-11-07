@@ -10,15 +10,13 @@ export function CartDrawer() {
   const { cartOpen, closeCart, items, update, remove, subtotal } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
-  const { calculateShipping, freeShippingThreshold, standardShippingFee, shippingMode } = useSettings()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee, karachiShippingFee, shippingMode } = useSettings()
   const navigate = useNavigate()
 
   const shippingFee = calculateShipping(subtotal)
   const isFreeDelivery = shippingMode === 'free' || (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold)
-  const amountNeeded =
-    freeShippingThreshold > 0 && standardShippingFee > 0
-      ? Math.max(0, freeShippingThreshold - subtotal)
-      : 0
+  const hasThreshold = shippingMode !== 'free' && freeShippingThreshold > 0
+  const amountNeeded = hasThreshold ? Math.max(0, freeShippingThreshold - subtotal) : 0
 
   const handleCheckoutClick = () => {
     closeCart()
@@ -55,7 +53,14 @@ export function CartDrawer() {
               </div>
             ) : (
               <div className="drawer-shipping-progress">
-                <span>Free delivery in <strong>Karachi</strong> &bull; Rs. {standardShippingFee || 250} flat outside</span>
+                {hasThreshold && amountNeeded > 0 ? (
+                  <span>Add <strong>Rs. {amountNeeded.toLocaleString()}</strong> more for <strong>FREE Shipping</strong></span>
+                ) : (
+                  <span>
+                    {Number(karachiShippingFee || 0) === 0 ? 'Free delivery in Karachi' : `Rs. ${karachiShippingFee} in Karachi`}{' '}
+                    &bull; Rs. {standardShippingFee || 250} flat outside
+                  </span>
+                )}
               </div>
             )}
           </div>

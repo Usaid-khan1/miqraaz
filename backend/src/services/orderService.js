@@ -127,20 +127,15 @@ export const createOrderService = async ({
   if (shippingMode === 'free') {
     // Mode B: Global Free Shipping everywhere
     shippingFee = 0
+  } else if (threshold > 0 && calculatedSubtotal >= threshold) {
+    // Reached Free Shipping Minimum Threshold
+    shippingFee = 0
   } else {
     // Mode A: Location-Based Shipping
     const cityStr = String(shippingAddress.city || '').trim().toLowerCase()
     const isKarachi = cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')
 
-    if (isKarachi) {
-      shippingFee = karachiFee // Free (Rs. 0) for Karachi
-    } else {
-      if (threshold > 0 && calculatedSubtotal >= threshold) {
-        shippingFee = 0
-      } else {
-        shippingFee = standardFee // Rs. 250 for outside Karachi
-      }
-    }
+    shippingFee = isKarachi ? karachiFee : standardFee
   }
 
   const taxableAmount = Math.max(0, calculatedSubtotal - discountAmount)

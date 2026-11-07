@@ -92,6 +92,7 @@ export function Checkout() {
     calculateTax,
     taxRatePercent,
     shippingMode,
+    karachiShippingFee,
     codEnabled,
     contactPhone,
   } = useSettings()
@@ -468,7 +469,7 @@ export function Checkout() {
               <span>
                 {shippingFee === 0 ? (
                   <span className="text-free">
-                    FREE {shippingMode === 'free' ? '(Nationwide)' : (shippingForm.city && shippingForm.city.toLowerCase().includes('karachi')) ? '(Karachi)' : ''}
+                    FREE {shippingMode === 'free' ? '(Nationwide)' : (shippingForm.city && shippingForm.city.toLowerCase().includes('karachi') && Number(karachiShippingFee || 0) === 0) ? '(Karachi Free)' : ''}
                   </span>
                 ) : (
                   money(shippingFee)

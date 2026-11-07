@@ -12,6 +12,7 @@ export const useSettings = () => {
       refreshSettings: () => Promise.resolve(),
       calculateShipping: () => 0,
       calculateTax: () => 0,
+      karachiShippingFee: 0,
       standardShippingFee: 0,
       freeShippingThreshold: 0,
       taxRatePercent: 0,
@@ -37,6 +38,8 @@ export function SettingsProvider({ children }) {
     contactPhone: '0339 7837586',
     currencySymbol: 'Rs.',
     currencyCode: 'PKR',
+    shippingMode: 'location_based',
+    karachiShippingFee: 0,
     standardShippingFee: 250,
     freeShippingThreshold: 8000,
     taxRatePercent: 0,
@@ -67,21 +70,20 @@ export function SettingsProvider({ children }) {
   const calculateShipping = useCallback(
     (subtotal = 0, city = '') => {
       const mode = settings?.shippingMode || 'location_based'
-      const standardFee = Number(settings?.standardShippingFee ?? 250)
-      const threshold = Number(settings?.freeShippingThreshold ?? 0)
-
       // Mode B: Global Free Shipping everywhere
       if (mode === 'free') return 0
 
-      // If standard fee is 0 or threshold met
-      if (standardFee === 0) return 0
+      const threshold = Number(settings?.freeShippingThreshold ?? 0)
       if (threshold > 0 && subtotal >= threshold) return 0
+
+      const karachiFee = Number(settings?.karachiShippingFee ?? 0)
+      const standardFee = Number(settings?.standardShippingFee ?? 250)
 
       // Mode A: Location-Based Shipping
       if (city) {
         const cityStr = String(city).trim().toLowerCase()
         if (cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')) {
-          return 0 // Free for Karachi
+          return karachiFee
         }
       }
 
@@ -108,6 +110,7 @@ export function SettingsProvider({ children }) {
     calculateShipping,
     calculateTax,
     shippingMode: settings?.shippingMode || 'location_based',
+    karachiShippingFee: Number(settings?.karachiShippingFee ?? 0),
     standardShippingFee: Number(settings?.standardShippingFee ?? 250),
     freeShippingThreshold: Number(settings?.freeShippingThreshold ?? 0),
     taxRatePercent: Number(settings?.taxRatePercent ?? 0),

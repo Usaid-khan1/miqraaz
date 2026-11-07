@@ -26,6 +26,7 @@ export function AdminSettings() {
     currencySymbol: 'Rs.',
     currencyCode: 'PKR',
     shippingMode: 'location_based',
+    karachiShippingFee: 0,
     standardShippingFee: 250,
     freeShippingThreshold: 8000,
     taxRatePercent: 0,
@@ -330,7 +331,7 @@ export function AdminSettings() {
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#09090b' }}>Mode A: Location-Based Shipping</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
-                      <strong>Karachi:</strong> FREE Delivery (Rs. 0)<br />
+                      <strong>Karachi:</strong> {Number(settings.karachiShippingFee || 0) === 0 ? 'FREE (Rs. 0)' : `Rs. ${settings.karachiShippingFee}`}<br />
                       <strong>Outside Karachi:</strong> Rs. {settings.standardShippingFee || 250} flat charge
                     </div>
                   </div>
@@ -357,33 +358,59 @@ export function AdminSettings() {
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#09090b' }}>Mode B: Global Free Shipping</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
-                      Free delivery for all orders across Pakistan regardless of city.
+                      Free delivery for all orders across Pakistan regardless of city or amount.
                     </div>
                   </div>
                 </label>
               </div>
             </div>
 
-            <div className="form-row-3">
+            <div className="form-row-2">
               <div className="field-group">
-                <label>Standard Shipping Fee (PKR)</label>
+                <label>Karachi Delivery Fee (PKR)</label>
                 <input
                   type="number"
                   min={0}
-                  value={settings.standardShippingFee}
-                  onChange={(e) => setSettings({ ...settings, standardShippingFee: Number(e.target.value) })}
-                  required
+                  value={settings.karachiShippingFee ?? 0}
+                  onChange={(e) => setSettings({ ...settings, karachiShippingFee: Number(e.target.value) })}
+                  placeholder="0 (Free Delivery)"
+                  disabled={settings.shippingMode === 'free'}
                 />
+                <span className="admin-field-hint">
+                  Karachi delivery charge. Enter 0 for free delivery in Karachi.
+                </span>
               </div>
               <div className="field-group">
-                <label>Free Shipping Minimum (PKR)</label>
+                <label>Outside Karachi / Other Cities Fee (PKR)</label>
                 <input
                   type="number"
                   min={0}
-                  value={settings.freeShippingThreshold}
-                  onChange={(e) => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })}
+                  value={settings.standardShippingFee ?? 250}
+                  onChange={(e) => setSettings({ ...settings, standardShippingFee: Number(e.target.value) })}
+                  placeholder="250"
+                  disabled={settings.shippingMode === 'free'}
                   required
                 />
+                <span className="admin-field-hint">
+                  Standard delivery charge for Lahore, Islamabad, and all other cities.
+                </span>
+              </div>
+            </div>
+
+            <div className="form-row-2" style={{ marginTop: '14px' }}>
+              <div className="field-group">
+                <label>Free Delivery Order Minimum (PKR)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={settings.freeShippingThreshold ?? 0}
+                  onChange={(e) => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })}
+                  placeholder="e.g. 8000 (0 to disable)"
+                  disabled={settings.shippingMode === 'free'}
+                />
+                <span className="admin-field-hint">
+                  Orders above this amount get free delivery automatically. <strong>Enter 0 to disable</strong> and always charge delivery.
+                </span>
               </div>
               <div className="field-group">
                 <label>Sales Tax Rate (%)</label>
@@ -391,9 +418,13 @@ export function AdminSettings() {
                   type="number"
                   min={0}
                   max={100}
-                  value={settings.taxRatePercent}
+                  value={settings.taxRatePercent ?? 0}
                   onChange={(e) => setSettings({ ...settings, taxRatePercent: Number(e.target.value) })}
+                  placeholder="0"
                 />
+                <span className="admin-field-hint">
+                  Optional GST / Sales tax percentage (0 to disable).
+                </span>
               </div>
             </div>
 
