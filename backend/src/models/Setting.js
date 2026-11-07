@@ -9,6 +9,8 @@ const settingSchema = new mongoose.Schema(
     contactPhone: { type: String, default: '' },
     currencySymbol: { type: String, default: 'Rs.' },
     currencyCode: { type: String, default: 'PKR' },
+    shippingMode: { type: String, enum: ['location_based', 'free'], default: 'location_based' },
+    karachiShippingFee: { type: Number, default: 0 },
     standardShippingFee: { type: Number, default: 250 },
     freeShippingThreshold: { type: Number, default: 8000 },
     taxRatePercent: { type: Number, default: 0 },

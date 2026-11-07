@@ -37,13 +37,21 @@ export const sendMail = async ({ to, subject, html, text }) => {
       return { success: false, message: 'SMTP not configured' }
     }
 
+    const fromAddress = ENV.EMAIL_FROM || process.env.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER || process.env.SMTP_USER}>`
+
     console.log(`[EmailService] Attempting to send email "${subject}" to ${to}...`)
     const info = await transport.sendMail({
-      from: ENV.EMAIL_FROM || process.env.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER || process.env.SMTP_USER}>`,
+      from: fromAddress,
       to,
+      replyTo: 'miqraaz.official@gmail.com',
       subject,
       text: text || subject,
       html,
+      headers: {
+        'X-Entity-Ref-ID': `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        'List-Unsubscribe': `<mailto:miqraaz.official@gmail.com?subject=Unsubscribe>`,
+        'Precedence': 'bulk',
+      },
     })
 
     console.log(`[EmailService] Email sent successfully to ${to}. MessageId: ${info.messageId}`)
@@ -266,7 +274,7 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
       const imageUrl = item.image
         ? item.image.startsWith('http')
           ? item.image
-          : `${clientUrl}${item.image}`
+          : `${clientUrl.replace(/\/$/, '')}${item.image.startsWith('/') ? '' : '/'}${item.image}`
         : ''
 
       return `
@@ -274,13 +282,13 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
           <td style="padding: 14px 0; border-bottom: 1px solid #f0f0f2; vertical-align: top;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
-                ${
-                  imageUrl
-                    ? `<td width="58" style="vertical-align: top; padding-right: 14px;">
-                        <img src="${imageUrl}" alt="${item.name}" width="54" height="68" style="object-fit: cover; border-radius: 4px; border: 1px solid #e4e4e7; display: block;" onerror="this.style.display='none'" />
-                      </td>`
-                    : ''
-                }
+                <td width="64" style="vertical-align: top; padding-right: 14px;">
+                  ${
+                    imageUrl
+                      ? `<img src="${imageUrl}" alt="${item.name || 'Miqraaz'}" width="58" height="74" style="object-fit: cover; border-radius: 4px; border: 1px solid #e4e4e7; display: block;" onerror="this.onerror=null;this.style.display='none';" />`
+                      : `<div style="width: 58px; height: 74px; background: #09090b; color: #ffffff; border-radius: 4px; border: 1px solid #27272a; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; line-height: 74px;">MIQRAAZ</div>`
+                  }
+                </td>
                 <td style="vertical-align: top;">
                   <div style="font-size: 14px; font-weight: 700; color: #09090b; margin-bottom: 4px;">
                     ${item.name || 'Miqraaz Article'}

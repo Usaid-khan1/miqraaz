@@ -328,16 +328,48 @@ h4 {
 
 /* hero */
 .hero {
-  min-height: 100vh;
+  min-height: 85vh;
+  max-height: 920px;
   background-size: cover;
-  background-position: center 30%;
+  background-position: center 25%;
+  background-repeat: no-repeat;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 90px 24px 70px;
+  padding: 100px 24px 70px;
   position: relative;
-  text-align: center
+  text-align: center;
+}
+
+@media (min-width: 1400px) {
+  .hero {
+    min-height: 88vh;
+    max-height: 960px;
+    background-position: center 28%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 100svh;
+    max-height: none;
+    background-position: center center;
+    padding: 80px 20px 50px;
+  }
+}
+
+.collection-section-header {
+  margin-bottom: 24px;
+}
+
+.collection-heading-title {
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text, #111111);
+  margin: 0;
 }
 
 .hero-center-box {
@@ -922,20 +954,341 @@ textarea {
   top: 96px;
 }
 
+/* PDP Main Image & Interactive Carousel */
 .pdp-main-wrap {
+  position: relative;
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 3 / 4;
-  background: #f7f7f7;
+  background: #f7f7f8;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line, #e5e5e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+  cursor: zoom-in;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .pdp-main {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   display: block;
+  transition: opacity 0.2s ease;
+}
+
+/* Carousel Prev/Next Arrow Buttons */
+.pdp-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #111111;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 0;
+}
+
+.pdp-carousel-arrow:hover {
+  background: #ffffff;
+  color: #000000;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.pdp-carousel-prev {
+  left: 12px;
+}
+
+.pdp-carousel-next {
+  right: 12px;
+}
+
+/* Zoom Hint Badge */
+.pdp-zoom-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(17, 17, 17, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.pdp-main-wrap:hover .pdp-zoom-badge {
+  opacity: 1;
+}
+
+/* Carousel Active Dots */
+.pdp-carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.pdp-carousel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pdp-carousel-dot.active {
+  background: #000000;
+  width: 18px;
+  border-radius: 4px;
+}
+
+/* Model Specifications (Part 8) */
+.pdp-model-specs-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.pdp-model-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.pdp-model-text {
+  font-size: 0.85rem;
+  color: #334155;
+  letter-spacing: 0.01em;
+}
+
+.pdp-model-text strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.pdp-model-bullet {
+  margin: 0 8px;
+  color: #94a3b8;
+}
+
+/* Formatted Description (Part 6) */
+.pdp-formatted-description {
+  white-space: pre-line;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: #4b5563;
+  margin-top: 10px;
+  margin-bottom: 18px;
+  letter-spacing: 0.01em;
+}
+
+/* Composition & Care Section (Part 9) */
+.pdp-composition-care-block {
+  border-top: 1px solid var(--line, #e5e5e5);
+  padding-top: 22px;
+  margin-top: 18px;
+}
+
+.pdp-section-heading {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text, #111111);
+}
+
+.pdp-spec-box {
+  background: #fafafa;
+  border: 1px solid #f0f0f2;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.pdp-spec-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #18181b;
+  margin: 0 0 6px 0;
+}
+
+.pdp-spec-list {
+  margin: 0;
+  padding-left: 18px;
+  list-style-type: disc;
+}
+
+.pdp-spec-list li {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #52525b;
+  margin-bottom: 3px;
+}
+
+.pdp-spec-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Isolated Fullscreen Lightbox Zoom Modal (Part 7: Android layout stable, iPhone preserved) */
+.pdp-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.pdp-lightbox-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.pdp-lightbox-counter {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+}
+
+.pdp-lightbox-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pdp-lightbox-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pdp-lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.pdp-lightbox-stage {
+  width: 90vw;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.pdp-lightbox-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+}
+
+.pdp-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.pdp-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pdp-lightbox-prev {
+  left: 24px;
+}
+
+.pdp-lightbox-next {
+  right: 24px;
+}
+
+@media (max-width: 768px) {
+  .pdp-lightbox-stage {
+    width: 96vw;
+    height: 75vh;
+  }
+  .pdp-lightbox-nav {
+    width: 38px;
+    height: 38px;
+  }
+  .pdp-lightbox-prev {
+    left: 8px;
+  }
+  .pdp-lightbox-next {
+    right: 8px;
+  }
 }
 
 .thumbs {
@@ -1780,110 +2133,7 @@ textarea {
   }
 }
 
-/* search overlay */
-.search-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 95;
-  display: flex;
-  flex-direction: column
-}
 
-.search-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, .65);
-  backdrop-filter: blur(3px)
-}
-
-.search-bar-modal {
-  position: relative;
-  z-index: 2;
-  background: #000;
-  color: #fff;
-  padding: 24px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
-  animation: slideDown .25s ease
-}
-
-.search-input-wrap {
-  max-width: 760px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, .2);
-  padding-bottom: 8px
-}
-
-.search-input-wrap input {
-  flex: 1;
-  background: transparent;
-  border: 0;
-  color: #fff;
-  font-size: 1.15rem;
-  letter-spacing: .04em;
-  outline: none;
-  padding: 4px 0
-}
-
-.search-input-wrap input::placeholder {
-  color: #777
-}
-
-.search-close {
-  color: #fff;
-  font-size: 1.1rem
-}
-
-.search-results {
-  max-width: 760px;
-  margin: 18px auto 0;
-  max-height: 55vh;
-  overflow-y: auto;
-  display: grid;
-  gap: 10px
-}
-
-.search-result-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  border-radius: 4px;
-  transition: background .2s
-}
-
-.search-result-item:hover {
-  background: rgba(255, 255, 255, .08)
-}
-
-.search-result-item img {
-  width: 48px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 2px
-}
-
-.search-result-name {
-  font-size: .95rem;
-  font-weight: 500;
-  color: #fff
-}
-
-.search-result-price {
-  font-size: .85rem;
-  color: #aaa;
-  margin-top: 2px
-}
-
-.search-no-results {
-  text-align: center;
-  color: #888;
-  padding: 24px 0;
-  font-size: .95rem
-}
 
 /* account modal */
 .account-modal-wrap {

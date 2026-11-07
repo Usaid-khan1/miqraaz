@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { money, formatImageUrl } from '../data.js'
 import { useCart } from '../context/CartContext.jsx'
 import { productsAPI } from '../services/api.js'
 import { PageLoader } from '../components/PageLoader.jsx'
 import { Card } from '../components/Card.jsx'
-import { X } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 
 export function Product() {
   const { slug } = useParams()
@@ -18,6 +18,14 @@ export function Product() {
   const [selectedSize, setSelectedSize] = useState('M')
   const [qty, setQty] = useState(1)
   const [showSizeChart, setShowSizeChart] = useState(false)
+
+  // Lightbox Zoom Viewer state
+  const [zoomOpen, setZoomOpen] = useState(false)
+  const [zoomScale, setZoomScale] = useState(1)
+
+  // Mobile Touch Swipe Handling
+  const touchStartXRef = useRef(null)
+  const touchEndXRef = useRef(null)
 
   useEffect(() => {
     let isMounted = true
@@ -50,6 +58,31 @@ export function Product() {
     }
   }, [slug])
 
+  // Manage body scroll lock during Zoom modal
+  useEffect(() => {
+    if (zoomOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      setZoomScale(1)
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [zoomOpen])
+
+  // Escape key listener for modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (zoomOpen) setZoomOpen(false)
+        if (showSizeChart) setShowSizeChart(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [zoomOpen, showSizeChart])
+
   if (loading) {
     return <PageLoader text="LOADING PRODUCT" />
   }
@@ -73,6 +106,39 @@ export function Product() {
   const currentStock = currentSizeObj ? currentSizeObj.stock : (product.totalStock ?? 0)
   const isSoldOut = (product.totalStock ?? 0) <= 0 || currentStock <= 0
 
+  const handlePrevImage = (e) => {
+    if (e) e.stopPropagation()
+    setActiveImgIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+  }
+
+  const handleNextImage = (e) => {
+    if (e) e.stopPropagation()
+    setActiveImgIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+  }
+
+  const handleTouchStart = (e) => {
+    touchStartXRef.current = e.targetTouches[0].clientX
+    touchEndXRef.current = null
+  }
+
+  const handleTouchMove = (e) => {
+    touchEndXRef.current = e.targetTouches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStartXRef.current || !touchEndXRef.current) return
+    const diff = touchStartXRef.current - touchEndXRef.current
+    if (diff > 40) {
+      // Swiped Left -> Next Image
+      handleNextImage()
+    } else if (diff < -40) {
+      // Swiped Right -> Previous Image
+      handlePrevImage()
+    }
+    touchStartXRef.current = null
+    touchEndXRef.current = null
+  }
+
   const handleAddToCart = () => {
     if (!isSoldOut) {
       add(product, selectedSize, qty)
@@ -82,17 +148,70 @@ export function Product() {
   return (
     <>
       <section className="section pdp">
-        {/* Left Gallery */}
+        {/* Left Gallery & Carousel */}
         <div className="pdp-gallery">
           {images.length > 0 ? (
             <>
-              <div className="pdp-main-wrap">
+              <div
+                className="pdp-main-wrap"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onClick={() => setZoomOpen(true)}
+                title="Click to zoom image"
+              >
                 <img
                   className="pdp-main"
                   src={images[activeImgIndex] || images[0]}
                   alt={product.name}
+                  loading="eager"
                 />
+
+                {/* Slider Navigation Arrows (shown if multiple images) */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="pdp-carousel-arrow pdp-carousel-prev"
+                      onClick={handlePrevImage}
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      className="pdp-carousel-arrow pdp-carousel-next"
+                      onClick={handleNextImage}
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </>
+                )}
+
+                {/* Zoom Affordance Pill */}
+                <div className="pdp-zoom-badge">
+                  <ZoomIn size={14} />
+                  <span>Click to zoom</span>
+                </div>
+
+                {/* Mobile Active Dots Indicator */}
+                {images.length > 1 && (
+                  <div className="pdp-carousel-dots" onClick={(e) => e.stopPropagation()}>
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className={`pdp-carousel-dot ${i === activeImgIndex ? 'active' : ''}`}
+                        onClick={() => setActiveImgIndex(i)}
+                        aria-label={`Go to image ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Thumbnails Navigation */}
               {images.length > 1 && (
                 <div className="thumbs">
                   {images.map((im, i) => (
@@ -135,6 +254,28 @@ export function Product() {
               <span className="price lg">{money(product.price)}</span>
             )}
           </div>
+
+          {/* Model Information (Part 8: directly below price, above size selector) */}
+          {(product.modelHeight || product.modelWearingSize) && (
+            <div className="pdp-model-specs-card">
+              <span className="pdp-model-icon">📏</span>
+              <div className="pdp-model-text">
+                {product.modelHeight && (
+                  <span>
+                    Model Height: <strong>{product.modelHeight}</strong>
+                  </span>
+                )}
+                {product.modelHeight && product.modelWearingSize && (
+                  <span className="pdp-model-bullet">&bull;</span>
+                )}
+                {product.modelWearingSize && (
+                  <span>
+                    Wearing Size: <strong>{product.modelWearingSize}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           <p className="muted pdp-shipping-note">
             Taxes included. Shipping calculated at checkout.
@@ -230,16 +371,48 @@ export function Product() {
             {isSoldOut ? 'Sold Out' : 'Add to Cart'}
           </button>
 
-          {/* Product Details & Specs */}
+          {/* Product Details & Formatted Description (Part 6) */}
           {(product.description || product.sku) && (
             <div className="pdp-details-block">
               {product.description && (
                 <>
                   <h4>Description</h4>
-                  <p className="desc">{product.description}</p>
+                  <div className="pdp-formatted-description">
+                    {product.description}
+                  </div>
                 </>
               )}
               {product.sku && <div className="sku-info">SKU: {product.sku}</div>}
+            </div>
+          )}
+
+          {/* Composition & Care Section (Part 9: directly below description) */}
+          {((product.composition && product.composition.length > 0) ||
+            (product.careInstructions && product.careInstructions.length > 0)) && (
+            <div className="pdp-composition-care-block">
+              <h4 className="pdp-section-heading">Composition &amp; Care</h4>
+
+              {product.composition && product.composition.length > 0 && (
+                <div className="pdp-spec-box">
+                  <h5 className="pdp-spec-title">Composition</h5>
+                  <ul className="pdp-spec-list">
+                    {product.composition.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {product.careInstructions && product.careInstructions.length > 0 && (
+                <div className="pdp-spec-box">
+                  <h5 className="pdp-spec-title">Care Instructions</h5>
+                  <ul className="pdp-spec-list">
+                    {product.careInstructions.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -262,6 +435,89 @@ export function Product() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Fullscreen Lightbox Zoom Modal (Part 7: Android layout stable, iPhone preserved) */}
+      {zoomOpen && (
+        <div
+          className="pdp-lightbox-overlay"
+          onClick={() => setZoomOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="pdp-lightbox-toolbar" onClick={(e) => e.stopPropagation()}>
+            <span className="pdp-lightbox-counter">
+              {activeImgIndex + 1} / {images.length}
+            </span>
+            <div className="pdp-lightbox-actions">
+              <button
+                type="button"
+                className="pdp-lightbox-btn"
+                onClick={() => setZoomScale((s) => (s >= 2 ? 1 : s + 0.5))}
+                title={zoomScale > 1 ? 'Zoom out' : 'Zoom in'}
+                aria-label="Toggle zoom scale"
+              >
+                {zoomScale > 1 ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+              </button>
+              <button
+                type="button"
+                className="pdp-lightbox-btn pdp-lightbox-close"
+                onClick={() => setZoomOpen(false)}
+                title="Close lightbox (Esc)"
+                aria-label="Close lightbox"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="pdp-lightbox-stage"
+            onClick={(e) => {
+              e.stopPropagation()
+              setZoomScale((s) => (s > 1 ? 1 : 2))
+            }}
+          >
+            <img
+              src={images[activeImgIndex] || images[0]}
+              alt={`${product.name} - Zoom View`}
+              className="pdp-lightbox-img"
+              style={{
+                transform: `scale(${zoomScale})`,
+                cursor: zoomScale > 1 ? 'zoom-out' : 'zoom-in',
+              }}
+            />
+          </div>
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="pdp-lightbox-nav pdp-lightbox-prev"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handlePrevImage()
+                  setZoomScale(1)
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={28} />
+              </button>
+              <button
+                type="button"
+                className="pdp-lightbox-nav pdp-lightbox-next"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleNextImage()
+                  setZoomScale(1)
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={28} />
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {/* Size Chart Modal */}

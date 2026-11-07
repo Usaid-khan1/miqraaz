@@ -85,6 +85,24 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    modelHeight: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    modelWearingSize: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    composition: {
+      type: [String],
+      default: [],
+    },
+    careInstructions: {
+      type: [String],
+      default: [],
+    },
     tags: [String],
   },
   {

@@ -10,11 +10,11 @@ export function CartDrawer() {
   const { cartOpen, closeCart, items, update, remove, subtotal } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
-  const { calculateShipping, freeShippingThreshold, standardShippingFee } = useSettings()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee, shippingMode } = useSettings()
   const navigate = useNavigate()
 
   const shippingFee = calculateShipping(subtotal)
-  const isFreeDelivery = shippingFee === 0
+  const isFreeDelivery = shippingMode === 'free' || (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold)
   const amountNeeded =
     freeShippingThreshold > 0 && standardShippingFee > 0
       ? Math.max(0, freeShippingThreshold - subtotal)
@@ -43,22 +43,21 @@ export function CartDrawer() {
 
         {items.length > 0 && (
           <div className={`drawer-shipping-notice ${isFreeDelivery ? 'unlocked' : ''}`}>
-            {isFreeDelivery ? (
+            {shippingMode === 'free' ? (
+              <div className="drawer-shipping-unlocked">
+                <Sparkles size={14} />
+                <span>You've unlocked <strong>FREE Shipping Nationwide!</strong></span>
+              </div>
+            ) : isFreeDelivery ? (
               <div className="drawer-shipping-unlocked">
                 <Sparkles size={14} />
                 <span>You've unlocked <strong>FREE Shipping!</strong></span>
               </div>
-            ) : amountNeeded > 0 ? (
+            ) : (
               <div className="drawer-shipping-progress">
-                <span>Add <strong>{money(amountNeeded)}</strong> more for <strong>FREE Shipping</strong></span>
-                <div className="drawer-progress-track">
-                  <div
-                    className="drawer-progress-fill"
-                    style={{ width: `${Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100))}%` }}
-                  />
-                </div>
+                <span>Free delivery in <strong>Karachi</strong> &bull; Rs. {standardShippingFee || 250} flat outside</span>
               </div>
-            ) : null}
+            )}
           </div>
         )}
 
