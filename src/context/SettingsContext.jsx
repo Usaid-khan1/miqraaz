@@ -63,22 +63,28 @@ export function SettingsProvider({ children }) {
     loadSettings()
   }, [loadSettings])
 
-  // Helper to calculate shipping fee dynamically based on subtotal and admin settings
+  // Helper to calculate shipping fee dynamically based on subtotal, city and admin settings
   const calculateShipping = useCallback(
-    (subtotal = 0) => {
-      const standardFee = Number(settings?.standardShippingFee ?? 0)
+    (subtotal = 0, city = '') => {
+      const mode = settings?.shippingMode || 'location_based'
+      const standardFee = Number(settings?.standardShippingFee ?? 250)
       const threshold = Number(settings?.freeShippingThreshold ?? 0)
 
-      // If standard fee is 0, delivery is completely free nationwide
+      // Mode B: Global Free Shipping everywhere
+      if (mode === 'free') return 0
+
+      // If standard fee is 0 or threshold met
       if (standardFee === 0) return 0
+      if (threshold > 0 && subtotal >= threshold) return 0
 
-      // If free shipping threshold is 0, delivery is completely free nationwide
-      if (threshold === 0) return 0
+      // Mode A: Location-Based Shipping
+      if (city) {
+        const cityStr = String(city).trim().toLowerCase()
+        if (cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')) {
+          return 0 // Free for Karachi
+        }
+      }
 
-      // If cart subtotal meets or exceeds threshold, free shipping
-      if (subtotal >= threshold) return 0
-
-      // Otherwise charge standard shipping fee
       return standardFee
     },
     [settings]
@@ -101,7 +107,8 @@ export function SettingsProvider({ children }) {
     updateLocalSettings: setSettings,
     calculateShipping,
     calculateTax,
-    standardShippingFee: Number(settings?.standardShippingFee ?? 0),
+    shippingMode: settings?.shippingMode || 'location_based',
+    standardShippingFee: Number(settings?.standardShippingFee ?? 250),
     freeShippingThreshold: Number(settings?.freeShippingThreshold ?? 0),
     taxRatePercent: Number(settings?.taxRatePercent ?? 0),
     codEnabled: settings?.codEnabled !== false,

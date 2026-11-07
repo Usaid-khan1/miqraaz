@@ -99,6 +99,10 @@ const seedProducts = [
     ],
     sizes: [{ size: 'S', stock: 6 }, { size: 'M', stock: 10 }, { size: 'L', stock: 8 }, { size: 'XL', stock: 4 }],
     isFeatured: true,
+    modelHeight: "6'1\"",
+    modelWearingSize: 'Large',
+    composition: ['280 GSM Heavyweight Terry Fleece', '80% Premium Combed Cotton', '20% Polyester'],
+    careInstructions: ['Hand wash with cold water', 'Avoid excessive bleaching', 'Hang to dry in shade', 'Iron on low temperature'],
   },
   {
     slug: 'lavkash-t-shirt',
@@ -111,6 +115,10 @@ const seedProducts = [
     ],
     sizes: [{ size: 'S', stock: 12 }, { size: 'M', stock: 15 }, { size: 'L', stock: 12 }, { size: 'XL', stock: 6 }],
     isFeatured: true,
+    modelHeight: "5'11\"",
+    modelWearingSize: 'Medium',
+    composition: ['220 GSM Bio-Washed Single Jersey', '100% Breathable Cotton'],
+    careInstructions: ['Machine wash cold inside out', 'Do not tumble dry', 'Warm iron on reverse side'],
   },
   {
     slug: 'doch',
@@ -171,9 +179,11 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
         brandNameUrdu: 'مِقْرَاض',
         tagline: 'A knock before an arrival.',
         contactEmail: 'miqraaz.official@gmail.com',
-        contactPhone: '+92 300 1234567',
+        contactPhone: '0339 7837586',
         currencySymbol: 'Rs.',
         currencyCode: 'PKR',
+        shippingMode: 'location_based',
+        karachiShippingFee: 0,
         standardShippingFee: 250,
         freeShippingThreshold: 8000,
         taxRatePercent: 0,
@@ -263,7 +273,17 @@ export const seedDatabase = async ({ exitOnComplete = true } = {}) => {
           sku: `MK-${Math.floor(100000 + Math.random() * 900000)}`,
           isFeatured: prod.isFeatured,
           isPublished: true,
+          modelHeight: prod.modelHeight || '',
+          modelWearingSize: prod.modelWearingSize || '',
+          composition: prod.composition || [],
+          careInstructions: prod.careInstructions || [],
         })
+      } else {
+        if (prod.modelHeight && !existing.modelHeight) existing.modelHeight = prod.modelHeight
+        if (prod.modelWearingSize && !existing.modelWearingSize) existing.modelWearingSize = prod.modelWearingSize
+        if (prod.composition?.length && (!existing.composition || existing.composition.length === 0)) existing.composition = prod.composition
+        if (prod.careInstructions?.length && (!existing.careInstructions || existing.careInstructions.length === 0)) existing.careInstructions = prod.careInstructions
+        await existing.save()
       }
     }
     console.log(`[Seed] Products seeded and stock assigned.`)

@@ -129,8 +129,6 @@ export function Home() {
         className="hero"
         style={{
           backgroundImage: heroBg,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
         }}
       >
         <div className="hero-center-box">
@@ -195,6 +193,9 @@ export function Home() {
       {/* 5. Chapters Section (Directly above Footer) */}
       {chapters.length > 0 && (
         <section className="section chapters-section">
+          <div className="section-head-split collection-section-header">
+            <h2 className="collection-heading-title">Volumes of Elegance</h2>
+          </div>
           <div className="chapter-grid-2col">
             {chapters.map((c) => (
               <Link

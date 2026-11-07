@@ -163,6 +163,20 @@ export const getFeaturedProducts = async (req, res, next) => {
   }
 }
 
+const parseListField = (val) => {
+  if (!val) return []
+  if (Array.isArray(val)) {
+    return val.map((s) => String(s).trim()).filter(Boolean)
+  }
+  if (typeof val === 'string') {
+    return val
+      .split('\n')
+      .map((s) => s.replace(/^[•\-\*]\s*/, '').trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
 export const createProduct = async (req, res, next) => {
   try {
     const {
@@ -180,6 +194,10 @@ export const createProduct = async (req, res, next) => {
       lowStockThreshold,
       isFeatured,
       isPublished,
+      modelHeight,
+      modelWearingSize,
+      composition,
+      careInstructions,
     } = req.body
 
     if (!name || price === undefined) {
@@ -224,6 +242,10 @@ export const createProduct = async (req, res, next) => {
       lowStockThreshold: Number(lowStockThreshold) || 5,
       isFeatured: Boolean(isFeatured),
       isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
+      modelHeight: modelHeight ? String(modelHeight).trim() : '',
+      modelWearingSize: modelWearingSize ? String(modelWearingSize).trim() : '',
+      composition: parseListField(composition),
+      careInstructions: parseListField(careInstructions),
     })
 
     // Log initial inventory
@@ -273,6 +295,10 @@ export const updateProduct = async (req, res, next) => {
       lowStockThreshold,
       isFeatured,
       isPublished,
+      modelHeight,
+      modelWearingSize,
+      composition,
+      careInstructions,
     } = req.body
 
     if (name) product.name = name
@@ -287,6 +313,10 @@ export const updateProduct = async (req, res, next) => {
     if (lowStockThreshold !== undefined) product.lowStockThreshold = Number(lowStockThreshold)
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured)
     if (isPublished !== undefined) product.isPublished = Boolean(isPublished)
+    if (modelHeight !== undefined) product.modelHeight = String(modelHeight).trim()
+    if (modelWearingSize !== undefined) product.modelWearingSize = String(modelWearingSize).trim()
+    if (composition !== undefined) product.composition = parseListField(composition)
+    if (careInstructions !== undefined) product.careInstructions = parseListField(careInstructions)
 
     if (sizes && Array.isArray(sizes)) {
       product.sizes = sizes

@@ -53,6 +53,10 @@ export function AdminProducts() {
     lowStockThreshold: 5,
     isFeatured: false,
     isPublished: true,
+    modelHeight: '',
+    modelWearingSize: '',
+    compositionText: '',
+    careInstructionsText: '',
   }
 
   const [form, setForm] = useState(initialForm)
@@ -117,6 +121,10 @@ export function AdminProducts() {
       lowStockThreshold: p.lowStockThreshold ?? 5,
       isFeatured: Boolean(p.isFeatured),
       isPublished: Boolean(p.isPublished),
+      modelHeight: p.modelHeight || '',
+      modelWearingSize: p.modelWearingSize || '',
+      compositionText: Array.isArray(p.composition) ? p.composition.join('\n') : (p.composition || ''),
+      careInstructionsText: Array.isArray(p.careInstructions) ? p.careInstructions.join('\n') : (p.careInstructions || ''),
     })
     setModalOpen(true)
   }
@@ -223,6 +231,10 @@ export function AdminProducts() {
       lowStockThreshold: Number(form.lowStockThreshold) || 5,
       isFeatured: Boolean(form.isFeatured),
       isPublished: Boolean(form.isPublished),
+      modelHeight: form.modelHeight,
+      modelWearingSize: form.modelWearingSize,
+      composition: form.compositionText,
+      careInstructions: form.careInstructionsText,
     }
 
     try {
@@ -522,6 +534,54 @@ export function AdminProducts() {
                     onChange={(e) => setForm({ ...form, sku: e.target.value })}
                     placeholder="e.g. MK-882190"
                   />
+                </div>
+              </div>
+
+              {/* Model Specifications */}
+              <div className="form-row-2">
+                <div className="field-group">
+                  <label>Model Height (e.g. 6'1")</label>
+                  <input
+                    type="text"
+                    value={form.modelHeight}
+                    onChange={(e) => setForm({ ...form, modelHeight: e.target.value })}
+                    placeholder="e.g. 6'1&quot;"
+                  />
+                  <span className="admin-field-hint">Displayed under the price on the product page</span>
+                </div>
+                <div className="field-group">
+                  <label>Model Wearing Size (e.g. Large)</label>
+                  <input
+                    type="text"
+                    value={form.modelWearingSize}
+                    onChange={(e) => setForm({ ...form, modelWearingSize: e.target.value })}
+                    placeholder="e.g. Large or M"
+                  />
+                  <span className="admin-field-hint">Displayed next to model height</span>
+                </div>
+              </div>
+
+              {/* Composition & Care Instructions */}
+              <div className="form-row-2">
+                <div className="field-group">
+                  <label>Composition (One detail per line)</label>
+                  <textarea
+                    rows={3}
+                    value={form.compositionText}
+                    onChange={(e) => setForm({ ...form, compositionText: e.target.value })}
+                    placeholder={"230 GSM Terry Fabric\n80% Cotton\n20% Polyester"}
+                  />
+                  <span className="admin-field-hint">Displayed in structured Composition section</span>
+                </div>
+                <div className="field-group">
+                  <label>Care Instructions (One instruction per line)</label>
+                  <textarea
+                    rows={3}
+                    value={form.careInstructionsText}
+                    onChange={(e) => setForm({ ...form, careInstructionsText: e.target.value })}
+                    placeholder={"Hand wash with cold water\nAvoid excessive bleaching\nHang to dry"}
+                  />
+                  <span className="admin-field-hint">Displayed in structured Care Instructions section</span>
                 </div>
               </div>
 

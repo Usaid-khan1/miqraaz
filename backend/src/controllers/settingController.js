@@ -30,6 +30,8 @@ export const updateSettings = async (req, res, next) => {
       'contactPhone',
       'currencySymbol',
       'currencyCode',
+      'shippingMode',
+      'karachiShippingFee',
       'standardShippingFee',
       'freeShippingThreshold',
       'taxRatePercent',

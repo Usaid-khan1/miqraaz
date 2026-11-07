@@ -37,13 +37,21 @@ export const sendMail = async ({ to, subject, html, text }) => {
       return { success: false, message: 'SMTP not configured' }
     }
 
+    const fromAddress = ENV.EMAIL_FROM || process.env.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER || process.env.SMTP_USER}>`
+
     console.log(`[EmailService] Attempting to send email "${subject}" to ${to}...`)
     const info = await transport.sendMail({
-      from: ENV.EMAIL_FROM || process.env.EMAIL_FROM || `Miqraaz <${ENV.SMTP_USER || process.env.SMTP_USER}>`,
+      from: fromAddress,
       to,
+      replyTo: 'miqraaz.official@gmail.com',
       subject,
       text: text || subject,
       html,
+      headers: {
+        'X-Entity-Ref-ID': `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        'List-Unsubscribe': `<mailto:miqraaz.official@gmail.com?subject=Unsubscribe>`,
+        'Precedence': 'bulk',
+      },
     })
 
     console.log(`[EmailService] Email sent successfully to ${to}. MessageId: ${info.messageId}`)
@@ -61,6 +69,7 @@ const renderEmailShell = ({ title, preheader = '', content }) => {
   const facebookUrl = 'https://www.facebook.com/share/1F8Kgzwh3S/'
   const whatsappUrl = 'https://wa.me/923397837586'
   const supportPhone = '0339 7837586'
+  const logoUrl = `${clientUrl.replace(/\/$/, '')}/logo1.png`
 
   return `
 <!DOCTYPE html>
@@ -86,11 +95,12 @@ const renderEmailShell = ({ title, preheader = '', content }) => {
           
           <!-- Brand Header -->
           <tr>
-            <td align="center" style="background-color: #09090b; padding: 32px 24px 28px; border-bottom: 2px solid #27272a;">
+            <td align="center" style="background-color: #09090b; padding: 28px 24px 24px; border-bottom: 2px solid #27272a;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center">
-                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #ffffff; font-family: 'Times New Roman', Times, serif;">مِقْرَاض</h1>
+                    <img src="${logoUrl}" alt="MIQRAAZ" width="130" style="display: block; margin: 0 auto 12px; max-width: 130px; height: auto;" onerror="this.style.display='none'" />
+                    <h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #ffffff; font-family: 'Times New Roman', Times, serif;">مِقْرَاض</h1>
                     <div style="font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #a1a1aa; margin-top: 6px; font-weight: 600;">MIQRAAZ • EST. IN LYARI</div>
                   </td>
                 </tr>
@@ -270,7 +280,7 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
       const imageUrl = item.image
         ? item.image.startsWith('http')
           ? item.image
-          : `${clientUrl}${item.image}`
+          : `${clientUrl.replace(/\/$/, '')}${item.image.startsWith('/') ? '' : '/'}${item.image}`
         : ''
 
       return `
@@ -278,13 +288,13 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
           <td style="padding: 14px 0; border-bottom: 1px solid #f0f0f2; vertical-align: top;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
-                ${
-                  imageUrl
-                    ? `<td width="58" style="vertical-align: top; padding-right: 14px;">
-                        <img src="${imageUrl}" alt="${item.name}" width="54" height="68" style="object-fit: cover; border-radius: 4px; border: 1px solid #e4e4e7; display: block;" onerror="this.style.display='none'" />
-                      </td>`
-                    : ''
-                }
+                <td width="64" style="vertical-align: top; padding-right: 14px;">
+                  ${
+                    imageUrl
+                      ? `<img src="${imageUrl}" alt="${item.name || 'Miqraaz'}" width="58" height="74" style="object-fit: cover; border-radius: 4px; border: 1px solid #e4e4e7; display: block;" onerror="this.onerror=null;this.style.display='none';" />`
+                      : `<div style="width: 58px; height: 74px; background: #09090b; color: #ffffff; border-radius: 4px; border: 1px solid #27272a; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; line-height: 74px;">MIQRAAZ</div>`
+                  }
+                </td>
                 <td style="vertical-align: top;">
                   <div style="font-size: 14px; font-weight: 700; color: #09090b; margin-bottom: 4px;">
                     ${item.name || 'Miqraaz Article'}

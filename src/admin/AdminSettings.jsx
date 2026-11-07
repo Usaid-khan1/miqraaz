@@ -25,6 +25,7 @@ export function AdminSettings() {
     contactPhone: '',
     currencySymbol: 'Rs.',
     currencyCode: 'PKR',
+    shippingMode: 'location_based',
     standardShippingFee: 250,
     freeShippingThreshold: 8000,
     taxRatePercent: 0,
@@ -302,6 +303,67 @@ export function AdminSettings() {
             </div>
           </div>
           <div className="admin-card-body">
+            {/* Shipping Mode Selector */}
+            <div className="shipping-mode-selector-wrap" style={{ marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: '#0f172a' }}>
+                Store Shipping Mode
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  padding: '12px 14px',
+                  background: (settings.shippingMode || 'location_based') === 'location_based' ? '#ffffff' : 'transparent',
+                  border: (settings.shippingMode || 'location_based') === 'location_based' ? '2px solid #09090b' : '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="radio"
+                    name="shippingMode"
+                    value="location_based"
+                    checked={(settings.shippingMode || 'location_based') === 'location_based'}
+                    onChange={() => setSettings({ ...settings, shippingMode: 'location_based' })}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#09090b' }}>Mode A: Location-Based Shipping</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                      <strong>Karachi:</strong> FREE Delivery (Rs. 0)<br />
+                      <strong>Outside Karachi:</strong> Rs. {settings.standardShippingFee || 250} flat charge
+                    </div>
+                  </div>
+                </label>
+
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  padding: '12px 14px',
+                  background: settings.shippingMode === 'free' ? '#ffffff' : 'transparent',
+                  border: settings.shippingMode === 'free' ? '2px solid #09090b' : '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="radio"
+                    name="shippingMode"
+                    value="free"
+                    checked={settings.shippingMode === 'free'}
+                    onChange={() => setSettings({ ...settings, shippingMode: 'free' })}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#09090b' }}>Mode B: Global Free Shipping</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                      Free delivery for all orders across Pakistan regardless of city.
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <div className="form-row-3">
               <div className="field-group">
                 <label>Standard Shipping Fee (PKR)</label>

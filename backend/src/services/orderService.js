@@ -31,6 +31,8 @@ export const createOrderService = async ({
   let storeSettings = await Setting.findOne()
   if (!storeSettings) {
     storeSettings = {
+      shippingMode: 'location_based',
+      karachiShippingFee: 0,
       standardShippingFee: 250,
       freeShippingThreshold: 8000,
       taxRatePercent: 0,
@@ -115,14 +117,31 @@ export const createOrderService = async ({
   }
 
   // 4. Calculate Shipping and Taxes dynamically from store settings
-  const standardFee = Number(storeSettings.standardShippingFee ?? 0)
+  const shippingMode = storeSettings.shippingMode || 'location_based'
+  const standardFee = Number(storeSettings.standardShippingFee ?? 250)
+  const karachiFee = Number(storeSettings.karachiShippingFee ?? 0)
   const threshold = Number(storeSettings.freeShippingThreshold ?? 0)
-  const isFreeDelivery =
-    standardFee === 0 ||
-    threshold === 0 ||
-    (threshold > 0 && calculatedSubtotal >= threshold)
 
-  const shippingFee = isFreeDelivery ? 0 : standardFee
+  let shippingFee = 0
+
+  if (shippingMode === 'free') {
+    // Mode B: Global Free Shipping everywhere
+    shippingFee = 0
+  } else {
+    // Mode A: Location-Based Shipping
+    const cityStr = String(shippingAddress.city || '').trim().toLowerCase()
+    const isKarachi = cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')
+
+    if (isKarachi) {
+      shippingFee = karachiFee // Free (Rs. 0) for Karachi
+    } else {
+      if (threshold > 0 && calculatedSubtotal >= threshold) {
+        shippingFee = 0
+      } else {
+        shippingFee = standardFee // Rs. 250 for outside Karachi
+      }
+    }
+  }
 
   const taxableAmount = Math.max(0, calculatedSubtotal - discountAmount)
   const tax = Number(storeSettings.taxRatePercent) > 0

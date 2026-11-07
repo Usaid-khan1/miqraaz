@@ -11,14 +11,14 @@ export function CartPage() {
   const { items, update, remove, subtotal, coupon, applyCoupon, removeCoupon } = useCart()
   const { isAuthenticated } = useAuth()
   const { showToast } = useToast()
-  const { calculateShipping, freeShippingThreshold, standardShippingFee } = useSettings()
+  const { calculateShipping, freeShippingThreshold, standardShippingFee, shippingMode } = useSettings()
   const navigate = useNavigate()
 
   const [couponInput, setCouponInput] = useState('')
   const [applying, setApplying] = useState(false)
 
-  const shippingFee = calculateShipping(subtotal)
-  const qualifiesForFreeShipping = shippingFee === 0
+  const qualifiesForFreeShipping = shippingMode === 'free' || (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold)
+  const shippingFee = qualifiesForFreeShipping ? 0 : Number(standardShippingFee || 250)
   const amountNeeded =
     freeShippingThreshold > 0 && standardShippingFee > 0
       ? Math.max(0, freeShippingThreshold - subtotal)
@@ -206,9 +206,9 @@ export function CartPage() {
             <span>Estimated Shipping</span>
             <span>
               {qualifiesForFreeShipping ? (
-                <span className="text-free">FREE</span>
+                <span className="text-free">{shippingMode === 'free' ? 'FREE (Nationwide)' : 'FREE'}</span>
               ) : (
-                money(shippingFee)
+                <span>{money(shippingFee)} <small style={{ color: '#64748b' }}>(Free in Karachi)</small></span>
               )}
             </span>
           </div>

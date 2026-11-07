@@ -91,6 +91,7 @@ export function Checkout() {
     calculateShipping,
     calculateTax,
     taxRatePercent,
+    shippingMode,
     codEnabled,
     contactPhone,
   } = useSettings()
@@ -102,10 +103,10 @@ export function Checkout() {
     }
   }, [codEnabled, paymentMethod])
 
-  // Calculate pricing breakdown dynamically from admin settings
+  // Calculate pricing breakdown dynamically from admin settings & entered delivery city
   const discountAmount = coupon?.discountAmount || 0
   const taxableAmount = Math.max(0, subtotal - discountAmount)
-  const shippingFee = calculateShipping(subtotal)
+  const shippingFee = calculateShipping(subtotal, shippingForm.city)
   const tax = calculateTax(taxableAmount)
   const grandTotal = Math.max(0, taxableAmount + shippingFee + tax)
 
@@ -466,7 +467,9 @@ export function Checkout() {
               <span>Shipping</span>
               <span>
                 {shippingFee === 0 ? (
-                  <span className="text-free">FREE</span>
+                  <span className="text-free">
+                    FREE {shippingMode === 'free' ? '(Nationwide)' : (shippingForm.city && shippingForm.city.toLowerCase().includes('karachi')) ? '(Karachi)' : ''}
+                  </span>
                 ) : (
                   money(shippingFee)
                 )}
