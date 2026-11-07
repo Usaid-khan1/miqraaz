@@ -66,30 +66,10 @@ export function SettingsProvider({ children }) {
     loadSettings()
   }, [loadSettings])
 
-  // Helper to calculate shipping fee dynamically based on subtotal, city and admin settings
+  // Static shipping fee: Rs. 150 on all orders
   const calculateShipping = useCallback(
-    (subtotal = 0, city = '') => {
-      const mode = settings?.shippingMode || 'location_based'
-      // Mode B: Global Free Shipping everywhere
-      if (mode === 'free') return 0
-
-      const threshold = Number(settings?.freeShippingThreshold ?? 0)
-      if (threshold > 0 && subtotal >= threshold) return 0
-
-      const karachiFee = Number(settings?.karachiShippingFee ?? 0)
-      const standardFee = Number(settings?.standardShippingFee ?? 250)
-
-      // Mode A: Location-Based Shipping
-      if (city) {
-        const cityStr = String(city).trim().toLowerCase()
-        if (cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')) {
-          return karachiFee
-        }
-      }
-
-      return standardFee
-    },
-    [settings]
+    () => 150,
+    []
   )
 
   // Helper to calculate sales tax

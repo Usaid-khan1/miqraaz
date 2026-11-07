@@ -116,27 +116,8 @@ export const createOrderService = async ({
     }
   }
 
-  // 4. Calculate Shipping and Taxes dynamically from store settings
-  const shippingMode = storeSettings.shippingMode || 'location_based'
-  const standardFee = Number(storeSettings.standardShippingFee ?? 250)
-  const karachiFee = Number(storeSettings.karachiShippingFee ?? 0)
-  const threshold = Number(storeSettings.freeShippingThreshold ?? 0)
-
-  let shippingFee = 0
-
-  if (shippingMode === 'free') {
-    // Mode B: Global Free Shipping everywhere
-    shippingFee = 0
-  } else if (threshold > 0 && calculatedSubtotal >= threshold) {
-    // Reached Free Shipping Minimum Threshold
-    shippingFee = 0
-  } else {
-    // Mode A: Location-Based Shipping
-    const cityStr = String(shippingAddress.city || '').trim().toLowerCase()
-    const isKarachi = cityStr === 'karachi' || cityStr === 'khi' || cityStr.includes('karachi')
-
-    shippingFee = isKarachi ? karachiFee : standardFee
-  }
+  // 4. Static shipping fee: Rs. 150 on all orders
+  const shippingFee = 150
 
   const taxableAmount = Math.max(0, calculatedSubtotal - discountAmount)
   const tax = Number(storeSettings.taxRatePercent) > 0
