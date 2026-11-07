@@ -54,6 +54,8 @@ export const sendMail = async ({ to, subject, html, text }) => {
   }
 }
 
+const BRAND_LOGO_URL = 'https://res.cloudinary.com/c7rxy1co/image/upload/v1794052474/miqraaz/brand/logo_white_official.png'
+
 // Reusable Luxury Brand Email Shell
 const renderEmailShell = ({ title, preheader = '', content }) => {
   const clientUrl = ENV.CLIENT_URL || 'https://miqraaz.vercel.app'
@@ -87,14 +89,9 @@ const renderEmailShell = ({ title, preheader = '', content }) => {
           <!-- Brand Header -->
           <tr>
             <td align="center" style="background-color: #09090b; padding: 32px 24px 28px; border-bottom: 2px solid #27272a;">
-              <table cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center">
-                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #ffffff; font-family: 'Times New Roman', Times, serif;">مِقْرَاض</h1>
-                    <div style="font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #a1a1aa; margin-top: 6px; font-weight: 600;">MIQRAAZ • EST. IN LYARI</div>
-                  </td>
-                </tr>
-              </table>
+              <a href="${clientUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+                <img src="${BRAND_LOGO_URL}" alt="MIQRAAZ" width="145" style="display: block; width: 145px; max-width: 145px; height: auto; margin: 0 auto; border: 0;" />
+              </a>
             </td>
           </tr>
 
@@ -172,7 +169,7 @@ export const sendWelcomeEmail = async (user) => {
   const shopUrl = `${clientUrl}/collections/all`
 
   const subject = `Welcome to Miqraaz — Artisanal Silhouettes & Street Fusion`
-  const preheader = `Assalam-o-Alaikum ${customerName}, welcome to Miqraaz. Enjoy 10% off with code WELCOME10.`
+  const preheader = `Welcome to Miqraaz, ${customerName}! Enjoy 10% off your first order with code WELCOME10.`
 
   const content = `
     <!-- Welcome Header -->
@@ -181,7 +178,7 @@ export const sendWelcomeEmail = async (user) => {
         WELCOME TO THE CIRCLE
       </span>
       <h2 style="font-size: 24px; font-weight: 700; color: #09090b; margin: 16px 0 8px; letter-spacing: -0.02em;">
-        Assalam-o-Alaikum, ${customerName}!
+        Welcome, ${customerName}!
       </h2>
       <p style="font-size: 15px; color: #52525b; line-height: 1.6; margin: 0 auto; max-width: 480px;">
         Thank you for creating an account with <strong>Miqraaz</strong>. You have entered a space where authentic Lyari craftsmanship merges with modern street silhouettes.
@@ -245,14 +242,13 @@ export const sendWelcomeEmail = async (user) => {
     to: customerEmail,
     subject,
     html,
-    text: `Assalam-o-Alaikum ${customerName}! Welcome to Miqraaz. Use coupon code WELCOME10 for 10% off your first order: ${shopUrl}`,
+    text: `Welcome to Miqraaz, ${customerName}! Use coupon code WELCOME10 for 10% off your first order: ${shopUrl}`,
   })
 }
 
 // 2. ORDER CONFIRMATION EMAIL (On Order Placed)
 export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 'Customer') => {
   const clientUrl = ENV.CLIENT_URL || 'https://miqraaz.vercel.app'
-  const accountUrl = `${clientUrl}/account`
   const orderNumber = order.orderNumber || 'MK-ORDER'
   const orderDate = new Date(order.createdAt || Date.now()).toLocaleDateString('en-PK', {
     day: 'numeric',
@@ -321,7 +317,7 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
         Thank You For Your Order!
       </h2>
       <p style="font-size: 14px; color: #52525b; margin: 0; line-height: 1.5;">
-        Assalam-o-Alaikum <strong>${customerName}</strong>, we have received your order and our workshop is carefully preparing it for dispatch.
+        Dear <strong>${customerName}</strong>, thank you for your order. We have received your purchase and our workshop is carefully preparing it for dispatch.
       </p>
     </div>
 
@@ -403,18 +399,6 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
         </tr>
       </table>
     </div>
-
-    <!-- Track Order Action Button -->
-    <div style="text-align: center; margin: 32px 0 20px;">
-      <a href="${accountUrl}" target="_blank" style="display: inline-block; background-color: #09090b; color: #ffffff; text-decoration: none; padding: 15px 36px; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);">
-        Track Your Order ➔
-      </a>
-    </div>
-
-    <div style="text-align: center; font-size: 12px; color: #71717a; line-height: 1.5;">
-      Estimated delivery time is <strong>3 to 5 business days</strong>.<br>
-      You will receive a call / SMS from the courier prior to delivery.
-    </div>
   `
 
   const html = renderEmailShell({
@@ -427,7 +411,7 @@ export const sendOrderConfirmationEmail = async (order, toEmail, customerName = 
     to: toEmail,
     subject,
     html,
-    text: `Thank you for your order #${orderNumber}! Total: Rs. ${(order.total || 0).toLocaleString()}. Shipping to ${shippingAddr.address}, ${shippingAddr.city}. Track your order at: ${accountUrl}`,
+    text: `Thank you for your order #${orderNumber}! Total: Rs. ${(order.total || 0).toLocaleString()}. Shipping to ${shippingAddr.address || ''}, ${shippingAddr.city || ''}.`,
   })
 }
 
@@ -445,7 +429,7 @@ export const sendPasswordResetEmail = async (toEmail, resetUrl, userName = 'Cust
         Password Reset Request
       </h2>
       <p style="font-size: 14px; color: #52525b; margin: 0; line-height: 1.5;">
-        Assalam-o-Alaikum <strong>${userName}</strong>, we received a request to reset your password.
+        Hello <strong>${userName}</strong>, we received a request to reset your password.
       </p>
     </div>
 
