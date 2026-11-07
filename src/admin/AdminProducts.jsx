@@ -44,6 +44,12 @@ export function AdminProducts() {
     imagesText: '',
     sizeChart: '',
     selectedSizes: ['S', 'M', 'L', 'XL'],
+    sizeStocks: {
+      S: 10,
+      M: 15,
+      L: 15,
+      XL: 10,
+    },
     lowStockThreshold: 5,
     isFeatured: false,
     isPublished: true,
@@ -85,6 +91,16 @@ export function AdminProducts() {
     const existingSizes = Array.isArray(p.sizes)
       ? p.sizes.map((s) => (typeof s === 'string' ? s : s.size)).filter(Boolean)
       : []
+
+    const stocks = { S: 10, M: 15, L: 15, XL: 10 }
+    if (Array.isArray(p.sizes)) {
+      p.sizes.forEach((s) => {
+        if (s && s.size) {
+          stocks[s.size] = typeof s.stock === 'number' ? s.stock : 0
+        }
+      })
+    }
+
     setForm({
       name: p.name || '',
       slug: p.slug || '',
@@ -97,6 +113,7 @@ export function AdminProducts() {
       imagesText: Array.isArray(p.images) ? p.images.join('\n') : '',
       sizeChart: p.sizeChart || '',
       selectedSizes: existingSizes.length > 0 ? existingSizes : ['S', 'M', 'L', 'XL'],
+      sizeStocks: stocks,
       lowStockThreshold: p.lowStockThreshold ?? 5,
       isFeatured: Boolean(p.isFeatured),
       isPublished: Boolean(p.isPublished),
@@ -186,13 +203,10 @@ export function AdminProducts() {
     const ALL_SIZES = ['S', 'M', 'L', 'XL']
     const sizesPayload = ALL_SIZES
       .filter((size) => form.selectedSizes.includes(size))
-      .map((size) => {
-        const existing = editingProduct?.sizes?.find((s) => s.size === size)
-        return {
-          size,
-          stock: existing && typeof existing.stock === 'number' && existing.stock > 0 ? existing.stock : 20,
-        }
-      })
+      .map((size) => ({
+        size,
+        stock: Math.max(0, parseInt(form.sizeStocks?.[size]) || 0),
+      }))
 
     const payload = {
       name: form.name,
@@ -662,41 +676,78 @@ export function AdminProducts() {
                 )}
               </div>
 
-              {/* Sizes Selection */}
+              {/* Sizes Selection & Initial Stock Quantities */}
               <div className="field-group">
                 <div className="label-with-link">
-                  <label>Available Sizes *</label>
+                  <label>Sizes &amp; Initial Stock Inventory *</label>
                   <span className="admin-field-hint" style={{ margin: 0 }}>
-                    {form.selectedSizes.length} of 4 selected
+                    Total Units:{' '}
+                    <strong>
+                      {['S', 'M', 'L', 'XL']
+                        .filter((s) => form.selectedSizes.includes(s))
+                        .reduce((sum, s) => sum + (Number(form.sizeStocks?.[s]) || 0), 0)}{' '}
+                      pieces
+                    </strong>
                   </span>
                 </div>
-                <div className="size-checkboxes-grid">
+                <div className="size-stock-cards-grid">
                   {['S', 'M', 'L', 'XL'].map((size) => {
                     const isChecked = form.selectedSizes.includes(size)
+                    const stockVal = form.sizeStocks?.[size] ?? 0
+
                     return (
-                      <label
+                      <div
                         key={size}
-                        className={`size-checkbox-tile ${isChecked ? 'active' : ''}`}
+                        className={`size-stock-card ${isChecked ? 'active' : 'disabled'}`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
+                        <div className="size-stock-card-header">
+                          <label className="size-stock-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    selectedSizes: [...prev.selectedSizes, size],
+                                  }))
+                                } else {
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    selectedSizes: prev.selectedSizes.filter((s) => s !== size),
+                                  }))
+                                }
+                              }}
+                            />
+                            <span className="size-name-badge">Size {size}</span>
+                          </label>
+                          <span className="size-state-indicator">
+                            {isChecked ? 'Active' : 'Off'}
+                          </span>
+                        </div>
+
+                        <div className="size-stock-qty-row">
+                          <span className="size-stock-label">Pieces:</span>
+                          <input
+                            type="number"
+                            min={0}
+                            disabled={!isChecked}
+                            value={isChecked ? stockVal : 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value) || 0)
                               setForm((prev) => ({
                                 ...prev,
-                                selectedSizes: [...prev.selectedSizes, size],
+                                sizeStocks: {
+                                  ...prev.sizeStocks,
+                                  [size]: val,
+                                },
                               }))
-                            } else {
-                              setForm((prev) => ({
-                                ...prev,
-                                selectedSizes: prev.selectedSizes.filter((s) => s !== size),
-                              }))
-                            }
-                          }}
-                        />
-                        <span className="size-tile-label">{size}</span>
-                      </label>
+                            }}
+                            className="size-stock-input"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
